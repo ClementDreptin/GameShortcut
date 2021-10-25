@@ -3,4 +3,7 @@
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="config\gameInfo.txt" />
+  </ItemGroup>
 </Project>
