@@ -57,6 +57,14 @@
   <ItemGroup>
     <ClInclude Include="src\Log.h" />
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="resources\icon.png">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">copy "%(FullPath)" "$(OutDir)resources\%(Filename)%(Extension)"</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Copy icon file %(FullPath)</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)resources\%(Filename)%(Extension)</Outputs>
+    </CustomBuild>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -6,4 +6,7 @@
   <ItemGroup>
     <ClInclude Include="src\Log.h" />
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="resources\icon.png" />
+  </ItemGroup>
 </Project>
