@@ -82,6 +82,40 @@ L"</XboxLiveSubmissionProject>";
 }
 
 
+static HRESULT ExecBLAST(CONST std::string& strXDKPath)
+{
+    std::string strBLASTPath = strXDKPath + "\\bin\\win32\\blast.exe";
+    std::string strBLASTParameters = GetExecDir() + "\\tmp.xlast /build /install:Local /nologo";
+
+    SHELLEXECUTEINFO ShExecInfo = { 0 };
+    ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+    ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_NOASYNC | SEE_MASK_NO_CONSOLE;
+    ShExecInfo.hwnd = NULL;
+    ShExecInfo.lpVerb = NULL;
+    ShExecInfo.lpFile = strBLASTPath.c_str();        
+    ShExecInfo.lpParameters = strBLASTParameters.c_str();   
+    ShExecInfo.lpDirectory = GetExecDir().c_str();
+    ShExecInfo.nShow = SW_SHOW;
+    ShExecInfo.hInstApp = NULL; 
+    ShellExecuteEx(&ShExecInfo);
+    WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
+    CloseHandle(ShExecInfo.hProcess);
+
+    if ((INT_PTR)ShExecInfo.hInstApp <= 32)
+    {
+        DWORD dwError = GetLastError();
+        CHAR szErrorMsg[200] = { 0 };
+        strerror_s(szErrorMsg, 200, dwError);
+
+        LogError(szErrorMsg);
+
+        return E_FAIL;
+    }
+
+    return S_OK;
+}
+
+
 int __cdecl main()
 {
     PCHAR szXDKPath;
@@ -109,5 +143,16 @@ int __cdecl main()
         return EXIT_FAILURE;
     }
 
-    ExitSuccess("Everything went right");
+    LogSuccess("XLAST file successfully generated.");
+
+    hr = ExecBLAST(szXDKPath);
+    if (FAILED(hr))
+    {
+        ExitFailure("Could not execute BLAST.");
+        return EXIT_FAILURE;
+    }
+
+    ExitSuccess("Game built and deployed to console successfully.");
+
+    return EXIT_SUCCESS;
 }
