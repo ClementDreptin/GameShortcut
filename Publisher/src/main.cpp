@@ -129,7 +129,6 @@ static HRESULT DeleteDirectory(CONST std::string& strDirPath)
     BOOL bResult;
     std::string strPattern = strDirPath + "\\*.*";
     WIN32_FIND_DATA FileInfo;
-    LogInfo(strPattern);
 
     HANDLE hFile = FindFirstFile(strPattern.c_str(), &FileInfo);
     if (hFile == INVALID_HANDLE_VALUE)
