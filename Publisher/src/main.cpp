@@ -127,6 +127,7 @@ static HRESULT ExecBLAST(CONST std::string& strXDKPath)
 
 int __cdecl main()
 {
+    HRESULT hr;
     PCHAR szXDKPath;
     size_t nXDKPathSize;
 
@@ -137,7 +138,7 @@ int __cdecl main()
         return EXIT_FAILURE;
     }
 
-    HRESULT hr = CheckXBDMConnection();
+    hr = CheckXBDMConnection();
     if (FAILED(hr))
     {
         ExitFailure("Could not connect to console");
