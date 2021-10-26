@@ -42,6 +42,8 @@ static HRESULT GetGamePath(std::string& strPath)
     while (std::getline(ConfigFile, strCurrentLine))
         lines.emplace_back(strCurrentLine);
 
+    ConfigFile.close();
+
     if (lines.size() != 2)
         return E_FAIL;
 
