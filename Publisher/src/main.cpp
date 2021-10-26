@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <xbdm.h>
 #include <fstream>
 #include <vector>
 #include <string>
@@ -7,12 +8,20 @@
 #include "Log.h"
 
 
+static HRESULT CheckXBDMConnection()
+{
+    DWORD dwXboxNameSize = MAX_PATH;
+    CHAR szXboxName[MAX_PATH];
+
+    return DmGetNameOfXbox(szXboxName, &dwXboxNameSize, TRUE);
+}
+
+
 static std::string GetExecDir()
 {
-    CONST size_t MAX_SIZE = 200;
-    CHAR szPath[MAX_SIZE] = { 0 };
+    CHAR szPath[MAX_PATH] = { 0 };
 
-    GetModuleFileName(NULL, szPath, MAX_SIZE);
+    GetModuleFileName(NULL, szPath, MAX_PATH);
 
     std::string strExecFilePath(szPath);
     return strExecFilePath.substr(0, strExecFilePath.find_last_of("\\"));
@@ -128,8 +137,15 @@ int __cdecl main()
         return EXIT_FAILURE;
     }
 
+    HRESULT hr = CheckXBDMConnection();
+    if (FAILED(hr))
+    {
+        ExitFailure("Could not connect to console");
+        return EXIT_FAILURE;
+    }
+
     std::string strGameName;
-    HRESULT hr = GetGameName(strGameName);
+    hr = GetGameName(strGameName);
     if (FAILED(hr))
     {
         ExitFailure("The game information file (config\\gameInfo.txt) could not be loaded or has a wrong format.");
