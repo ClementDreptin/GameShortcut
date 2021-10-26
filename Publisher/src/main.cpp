@@ -160,7 +160,7 @@ int __cdecl main()
         return EXIT_FAILURE;
     }
 
-    LogSuccess("XLAST file successfully generated.");
+    LogInfo("XLAST file successfully generated.");
 
     hr = ExecBLAST(szXDKPath);
     if (FAILED(hr))

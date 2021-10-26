@@ -33,14 +33,6 @@ VOID LogError(CONST std::string& strMessage)
 }
 
 
-VOID LogSuccess(CONST std::string& strMessage)
-{
-    SetConsoleColor(STD_OUTPUT_HANDLE, FOREGROUND_GREEN);
-    std::cout << strMessage << std::endl;
-    ResetConsoleColor(STD_OUTPUT_HANDLE);
-}
-
-
 VOID ExitFailure(CONST std::string& strMessage)
 {
     LogError(strMessage);
@@ -50,6 +42,6 @@ VOID ExitFailure(CONST std::string& strMessage)
 
 VOID ExitSuccess(CONST std::string& strMessage)
 {
-    LogSuccess(strMessage);
+    LogInfo(strMessage);
     system("pause");
 }
