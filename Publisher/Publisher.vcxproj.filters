@@ -3,4 +3,7 @@
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Log.h" />
+  </ItemGroup>
 </Project>
