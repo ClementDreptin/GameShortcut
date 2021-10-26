@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include <iostream>
+#include <string>
 
 
 static VOID SetConsoleColor(DWORD dwStdHandle, WORD wColor)
@@ -16,39 +17,39 @@ static VOID ResetConsoleColor(DWORD dwStdHandle)
 }
 
 
-VOID LogInfo(LPCSTR szMessage)
+VOID LogInfo(CONST std::string& strMessage)
 {
     SetConsoleColor(STD_OUTPUT_HANDLE, 7);
-    std::cout << szMessage << std::endl;
+    std::cout << strMessage << std::endl;
     ResetConsoleColor(STD_OUTPUT_HANDLE);
 }
 
 
-VOID LogError(LPCSTR szMessage)
+VOID LogError(CONST std::string& strMessage)
 {
     SetConsoleColor(STD_ERROR_HANDLE, FOREGROUND_RED);
-    std::cerr << szMessage << std::endl;
+    std::cerr << strMessage << std::endl;
     ResetConsoleColor(STD_ERROR_HANDLE);
 }
 
 
-VOID LogSuccess(LPCSTR szMessage)
+VOID LogSuccess(CONST std::string& strMessage)
 {
     SetConsoleColor(STD_OUTPUT_HANDLE, FOREGROUND_GREEN);
-    std::cout << szMessage << std::endl;
+    std::cout << strMessage << std::endl;
     ResetConsoleColor(STD_OUTPUT_HANDLE);
 }
 
 
-VOID ExitFailure(LPCSTR szMessage)
+VOID ExitFailure(CONST std::string& strMessage)
 {
-    LogError(szMessage);
+    LogError(strMessage);
     system("pause");
 }
 
 
-VOID ExitSuccess(LPCSTR szMessage)
+VOID ExitSuccess(CONST std::string& strMessage)
 {
-    LogSuccess(szMessage);
+    LogSuccess(strMessage);
     system("pause");
 }
