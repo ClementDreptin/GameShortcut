@@ -136,7 +136,7 @@ static HRESULT DeleteDirectory(CONST std::string& strDirPath)
 
     while (FindNextFile(hFile, &FileInfo) == TRUE)
     {
-        if (FileInfo.cFileName[0] != '.')
+        if (FileInfo.cFileName[0] == '.')
             continue;
 
         std::string strFilePath = strDirPath + "\\" + FileInfo.cFileName;
