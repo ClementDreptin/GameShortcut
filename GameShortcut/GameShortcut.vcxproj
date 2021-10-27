@@ -57,6 +57,12 @@
       <DeploymentType>CopyToHardDrive</DeploymentType>
       <DeploymentFiles>$(RemoteRoot)=$(ImagePath);$(RemoteRoot)\config=$(OutDir)config</DeploymentFiles>
     </Deploy>
+    <PostBuildEvent>
+      <Command>del $(OutDir)$(TargetName)$(TargetExt)</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Delete $(OutDir)$(TargetName)$(TargetExt)</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
