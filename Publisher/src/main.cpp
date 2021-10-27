@@ -3,6 +3,8 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <random>
+#include <algorithm>
 #include <codecvt>
 
 #include "Log.h"
@@ -57,22 +59,33 @@ static HRESULT BuildXLASTFile(CONST std::string& strGameName)
     std::wstring wstrGameName;
     wstrGameName.assign(strGameName.begin(), strGameName.end());
 
+    std::random_device RandomDevice;
+    std::mt19937 rng(RandomDevice());
+    std::uniform_int_distribution<std::mt19937::result_type> RandomDistance(0, MAXDWORD);
+    UINT uiRandomNumber = RandomDistance(rng);
+
+    WCHAR wszBuffer[9] = { 0 };
+    _snwprintf_s(wszBuffer, 9, 9, L"%08x", uiRandomNumber);
+
+    std::wstring wstrRandomNumberAsHex(wszBuffer);
+    std::transform(wstrRandomNumberAsHex.begin(), wstrRandomNumberAsHex.end(), wstrRandomNumberAsHex.begin(), towupper);
+
     std::wstring wstrFileContent =
-L"<?xml version=\"1.0\" encoding=\"UTF-16\" standalone=\"no\"?>\n"
-L"<XboxLiveSubmissionProject Version=\"2.0.21256.0\">\n"
-L"	<ContentProject clsid=\"{AED6156D-A870-4FF7-924F-F375495A222A}\" Name=\"" + wstrGameName + L"\" TitleID=\"12345678\" TitleName=\"" + wstrGameName + L"\" ActivationDate=\"10/26/2021\" PubOfferingID=\"FFFFFFF\" PubBitFlags=\"FFFFFFFF\" HasCost=\"false\" IsMarketplace=\"true\" AllowProfileTransfer=\"true\" AllowDeviceTransfer=\"true\" DashIconPath=\".\\resources\\icon.png\" TitleIconPath=\".\\resources\\icon.png\" ContentType=\"0x00080000\">\n"
-L"		<LanguageSettings clsid=\"{F5BA1EE2-D217-447C-93C7-3C7AA6F25DD5}\">\n"
-L"			<Language clsid=\"{6424EAA3-FA00-4B6C-8CFB-BF063FC18845}\" DashDisplayName=\"" + wstrGameName + L"\" Description=\"" + wstrGameName + L"\"/>\n"
-L"		</LanguageSettings>\n"
-L"		<Contents clsid=\"{0D8B38B9-F5A8-4050-8F8D-81F67E3B2456}\">\n"
-L"			<Folder clsid=\"{0D8B38B9-F5A8-4050-8F8D-81F67E3B2456}\" TargetName=\"config\">\n"
-L"				<File clsid=\"{8A0BC3DD-B402-4080-8E34-C22144FC1ECE}\" SourceName=\".\\gameInfo.txt\" TargetName=\"gameInfo.txt\"/>\n"
-L"			</Folder>\n"
-L"			<File clsid=\"{8A0BC3DD-B402-4080-8E34-C22144FC1ECE}\" SourceName=\".\\default.xex\" TargetName=\"default.xex\"/>\n"
-L"		</Contents>\n"
-L"		<ContentOffers clsid=\"{146485F0-DCD7-4AB1-97E1-9B0E64150499}\"/>\n"
-L"	</ContentProject>\n"
-L"</XboxLiveSubmissionProject>";
+        L"<?xml version=\"1.0\" encoding=\"UTF-16\" standalone=\"no\"?>\n"
+        L"<XboxLiveSubmissionProject Version=\"2.0.21256.0\">\n"
+        L"	<ContentProject clsid=\"{AED6156D-A870-4FF7-924F-F375495A222A}\" Name=\"" + wstrGameName + L"\" TitleID=\"" + wstrRandomNumberAsHex + L"\" TitleName=\"" + wstrGameName + L"\" ActivationDate=\"10/26/2021\" PubOfferingID=\"FFFFFFF\" PubBitFlags=\"FFFFFFFF\" HasCost=\"false\" IsMarketplace=\"true\" AllowProfileTransfer=\"true\" AllowDeviceTransfer=\"true\" DashIconPath=\".\\resources\\icon.png\" TitleIconPath=\".\\resources\\icon.png\" ContentType=\"0x00080000\">\n"
+        L"		<LanguageSettings clsid=\"{F5BA1EE2-D217-447C-93C7-3C7AA6F25DD5}\">\n"
+        L"			<Language clsid=\"{6424EAA3-FA00-4B6C-8CFB-BF063FC18845}\" DashDisplayName=\"" + wstrGameName + L"\" Description=\"" + wstrGameName + L"\"/>\n"
+        L"		</LanguageSettings>\n"
+        L"		<Contents clsid=\"{0D8B38B9-F5A8-4050-8F8D-81F67E3B2456}\">\n"
+        L"			<Folder clsid=\"{0D8B38B9-F5A8-4050-8F8D-81F67E3B2456}\" TargetName=\"config\">\n"
+        L"				<File clsid=\"{8A0BC3DD-B402-4080-8E34-C22144FC1ECE}\" SourceName=\".\\gameInfo.txt\" TargetName=\"gameInfo.txt\"/>\n"
+        L"			</Folder>\n"
+        L"			<File clsid=\"{8A0BC3DD-B402-4080-8E34-C22144FC1ECE}\" SourceName=\".\\default.xex\" TargetName=\"default.xex\"/>\n"
+        L"		</Contents>\n"
+        L"		<ContentOffers clsid=\"{146485F0-DCD7-4AB1-97E1-9B0E64150499}\"/>\n"
+        L"	</ContentProject>\n"
+        L"</XboxLiveSubmissionProject>";
 
     std::wofstream XLASTFile(GetExecDir() + "\\tmp.xlast", std::ios::binary);
     CONST std::codecvt_mode mode = (std::codecvt_mode)(std::generate_header | std::little_endian);
@@ -233,7 +246,7 @@ int __cdecl main()
 
     Cleanup();
 
-    ExitSuccess("Game built and deployed to console successfully.");
+    system("pause");
 
     return EXIT_SUCCESS;
 }
