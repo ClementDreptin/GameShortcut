@@ -40,8 +40,10 @@ VOID ExitFailure(CONST std::string& strMessage)
 }
 
 
-VOID ExitSuccess(CONST std::string& strMessage)
+VOID ExitSuccess(CONST std::string& strMessage = "")
 {
-    LogInfo(strMessage);
+    if (strMessage != "")
+        LogInfo(strMessage);
+
     system("pause");
 }
