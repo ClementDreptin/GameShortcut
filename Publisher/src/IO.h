@@ -1,22 +1,22 @@
 #pragma once
 
-#include <Windows.h>
-
 #include <string>
+
+#include <Windows.h>
 
 
 std::string GetExecDir()
 {
-    CHAR szPath[MAX_PATH] = { 0 };
+    char szPath[MAX_PATH] = { 0 };
 
     GetModuleFileName(NULL, szPath, MAX_PATH);
 
     std::string strExecFilePath(szPath);
+
     return strExecFilePath.substr(0, strExecFilePath.find_last_of("\\"));
 }
 
-
-static HRESULT DeleteDirectory(CONST std::string& strDirPath)
+static HRESULT DeleteDirectory(const std::string &strDirPath)
 {
     BOOL bResult;
     std::string strPattern = strDirPath + "\\*.*";
@@ -26,7 +26,7 @@ static HRESULT DeleteDirectory(CONST std::string& strDirPath)
     if (hFile == INVALID_HANDLE_VALUE)
         return E_FAIL;
 
-    while (FindNextFile(hFile, &FileInfo) == TRUE)
+    while (FindNextFile(hFile, &FileInfo))
     {
         if (FileInfo.cFileName[0] == '.')
             continue;
@@ -68,8 +68,7 @@ static HRESULT DeleteDirectory(CONST std::string& strDirPath)
     return S_OK;
 }
 
-
-VOID Cleanup()
+void Cleanup()
 {
     DeleteDirectory(GetExecDir() + "\\Online");
 

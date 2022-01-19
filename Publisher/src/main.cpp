@@ -10,7 +10,7 @@
 static HRESULT CheckXBDMConnection()
 {
     DWORD dwXboxNameSize = MAX_PATH;
-    CHAR szXboxName[MAX_PATH];
+    char szXboxName[MAX_PATH];
 
     return DmGetNameOfXbox(szXboxName, &dwXboxNameSize, TRUE);
 }
@@ -19,7 +19,7 @@ static HRESULT CheckXBDMConnection()
 int __cdecl main()
 {
     HRESULT hr;
-    PCHAR szXDKPath;
+    char *szXDKPath;
     size_t nXDKPathSize;
 
     errno_t err = _dupenv_s(&szXDKPath, &nXDKPathSize, "xedk");

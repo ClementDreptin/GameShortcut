@@ -1,46 +1,45 @@
-#include <Windows.h>
+#pragma once
+
 #include <iostream>
 #include <string>
+#include <cstdint>
+
+#include <Windows.h>
 
 
-static VOID SetConsoleColor(DWORD dwStdHandle, WORD wColor)
+static void SetConsoleColor(DWORD dwStdHandle, uint16_t wColor)
 {
     HANDLE hConsole = GetStdHandle(dwStdHandle);
     SetConsoleTextAttribute(hConsole, FOREGROUND_INTENSITY | wColor);
 }
 
-
-static VOID ResetConsoleColor(DWORD dwStdHandle)
+static void ResetConsoleColor(DWORD dwStdHandle)
 {
     HANDLE hConsole = GetStdHandle(dwStdHandle);
     SetConsoleTextAttribute(hConsole, FOREGROUND_INTENSITY | 7);
 }
 
-
-VOID LogInfo(CONST std::string& strMessage)
+void LogInfo(const std::string &strMessage)
 {
     SetConsoleColor(STD_OUTPUT_HANDLE, 7);
-    std::cout << strMessage << std::endl;
+    std::cout << strMessage << '\n';
     ResetConsoleColor(STD_OUTPUT_HANDLE);
 }
 
-
-VOID LogError(CONST std::string& strMessage)
+void LogError(const std::string &strMessage)
 {
     SetConsoleColor(STD_ERROR_HANDLE, FOREGROUND_RED);
-    std::cerr << strMessage << std::endl;
+    std::cerr << strMessage << '\n';
     ResetConsoleColor(STD_ERROR_HANDLE);
 }
 
-
-VOID ExitFailure(CONST std::string& strMessage)
+void ExitFailure(const std::string &strMessage)
 {
     LogError(strMessage);
     system("pause");
 }
 
-
-VOID ExitSuccess(CONST std::string& strMessage = "")
+void ExitSuccess(const std::string &strMessage = "")
 {
     if (strMessage != "")
         LogInfo(strMessage);

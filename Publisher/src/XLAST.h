@@ -1,17 +1,17 @@
 #pragma once
 
-#include <Windows.h>
-
 #include <iostream>
 #include <random>
 #include <algorithm>
 #include <fstream>
 #include <codecvt>
 
+#include <Windows.h>
+
 #include "IO.h"
 
 
-HRESULT BuildXLASTFile(CONST std::string& strGameName)
+HRESULT BuildXLASTFile(const std::string &strGameName)
 {
     std::wstring wstrGameName;
     wstrGameName.assign(strGameName.begin(), strGameName.end());
@@ -19,10 +19,10 @@ HRESULT BuildXLASTFile(CONST std::string& strGameName)
     std::random_device RandomDevice;
     std::mt19937 rng(RandomDevice());
     std::uniform_int_distribution<std::mt19937::result_type> RandomDistance(0, MAXDWORD);
-    UINT uiRandomNumber = RandomDistance(rng);
+    size_t nRandomNumber = RandomDistance(rng);
 
-    WCHAR wszBuffer[9] = { 0 };
-    _snwprintf_s(wszBuffer, 9, 9, L"%08x", uiRandomNumber);
+    wchar_t wszBuffer[9] = { 0 };
+    _snwprintf_s(wszBuffer, 9, 9, L"%08x", nRandomNumber);
 
     std::wstring wstrRandomNumberAsHex(wszBuffer);
     std::transform(wstrRandomNumberAsHex.begin(), wstrRandomNumberAsHex.end(), wstrRandomNumberAsHex.begin(), towupper);
@@ -45,8 +45,8 @@ HRESULT BuildXLASTFile(CONST std::string& strGameName)
         L"</XboxLiveSubmissionProject>";
 
     std::wofstream XLASTFile(GetExecDir() + "\\tmp.xlast", std::ios::binary);
-    CONST std::codecvt_mode mode = (std::codecvt_mode)(std::generate_header | std::little_endian);
-    std::locale UTF16Locale(XLASTFile.getloc(), new std::codecvt_utf16<WCHAR, 0x10ffff, mode>);
+    const std::codecvt_mode mode = (std::codecvt_mode)(std::generate_header | std::little_endian);
+    std::locale UTF16Locale(XLASTFile.getloc(), new std::codecvt_utf16<wchar_t, 0x10FFFF, mode>);
 
     if (!XLASTFile.is_open())
         return E_FAIL;
@@ -60,8 +60,7 @@ HRESULT BuildXLASTFile(CONST std::string& strGameName)
     return S_OK;
 }
 
-
-HRESULT ExecBLAST(CONST std::string& strXDKPath)
+HRESULT ExecBLAST(const std::string &strXDKPath)
 {
     std::string strBLASTPath = strXDKPath + "\\bin\\win32\\blast.exe";
     std::string strBLASTParameters = GetExecDir() + "\\tmp.xlast /build /install:Local /nologo";
@@ -80,13 +79,13 @@ HRESULT ExecBLAST(CONST std::string& strXDKPath)
     WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
     CloseHandle(ShExecInfo.hProcess);
 
-    if ((INT_PTR)ShExecInfo.hInstApp <= 32)
+    if (reinterpret_cast<int>(ShExecInfo.hInstApp) <= 32)
     {
         DWORD dwError = GetLastError();
-        CHAR szErrorMsg[200] = { 0 };
+        char szErrorMsg[200] = { 0 };
         strerror_s(szErrorMsg, 200, dwError);
 
-        std::cerr << szErrorMsg << std::endl;
+        std::cerr << szErrorMsg << '\n';
 
         return E_FAIL;
     }

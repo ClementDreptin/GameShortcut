@@ -2,25 +2,24 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <cstdint>
 
 
 struct STRING
 {
-    WORD wLength;
-    WORD wMaxLength;
-    PCHAR szBuffer;
+    uint16_t wLength;
+    uint16_t wMaxLength;
+    const char *szBuffer;
 };
 
-#define MakeString(s) { (WORD)strlen(s), (WORD)strlen(s) + 1, s }
+#define MakeString(s) { static_cast<uint16_t>(strlen(s)), static_cast<uint16_t>(strlen(s)) + 1, s }
 
-
-extern "C" HRESULT __stdcall ObCreateSymbolicLink(STRING*, STRING*);
-
+extern "C" HRESULT __stdcall ObCreateSymbolicLink(STRING *, STRING *);
 
 static HRESULT MountHdd()
 {
-    PCHAR szDestDrive = "\\??\\hdd:";
-    PCHAR szHddDeviceName = "\\Device\\Harddisk0\\Partition1\\";
+    const char *szDestDrive = "\\??\\hdd:";
+    const char *szHddDeviceName = "\\Device\\Harddisk0\\Partition1\\";
 
     STRING DeviceName = MakeString(szHddDeviceName);
     STRING LinkName = MakeString(szDestDrive);
@@ -28,8 +27,7 @@ static HRESULT MountHdd()
     return ObCreateSymbolicLink(&LinkName, &DeviceName);
 }
 
-
-static HRESULT GetGamePath(std::string& strPath)
+static HRESULT GetGamePath(std::string &strPath)
 {
     std::ifstream ConfigFile("game:\\config\\gameInfo.txt");
     if (!ConfigFile.is_open())
@@ -52,19 +50,15 @@ static HRESULT GetGamePath(std::string& strPath)
     return S_OK;
 }
 
-
-static HRESULT ShowMessageBoxError(CONST std::string& strMessage)
+static HRESULT ShowMessageBoxError(const std::string& strMessage)
 {
-    XOVERLAPPED overlapped;
-    ZeroMemory(&overlapped, sizeof(XOVERLAPPED));
-
-    MESSAGEBOX_RESULT result;
-    ZeroMemory(&result, sizeof(MESSAGEBOX_RESULT));
+    XOVERLAPPED overlapped = { 0 };
+    MESSAGEBOX_RESULT result = { 0 };
 
     std::wstring wstrMessage;
     wstrMessage.assign(strMessage.begin(), strMessage.end());
 
-    LPCWSTR pwstrButtons[] = { L"OK", L"Cancel" };
+    const wchar_t *pwstrButtons[] = { L"OK", L"Cancel" };
 
     DWORD dwResult = XShowMessageBoxUI(
         0,
@@ -84,14 +78,13 @@ static HRESULT ShowMessageBoxError(CONST std::string& strMessage)
     while (!XHasOverlappedIoCompleted(&overlapped))
         Sleep(100);
 
-    dwResult = XGetOverlappedResult(&overlapped, NULL, TRUE);
+    dwResult = XGetOverlappedResult(&overlapped, nullptr, true);
 
     if (dwResult == ERROR_ACCESS_DENIED)
         return E_FAIL;
 
     return S_OK;
 }
-
 
 int __cdecl main()
 {
@@ -110,5 +103,5 @@ int __cdecl main()
         return EXIT_FAILURE;
     }
 
-    XLaunchNewImage(strGamePath.c_str(), NULL);
+    XLaunchNewImage(strGamePath.c_str(), 0);
 }

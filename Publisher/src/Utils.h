@@ -1,15 +1,15 @@
 #pragma once
 
-#include <Windows.h>
-
 #include <string>
 #include <fstream>
 #include <vector>
 
+#include <Windows.h>
+
 #include "IO.h"
 
 
-HRESULT GetGameName(std::string& strName)
+HRESULT GetGameName(std::string &strName)
 {
     std::ifstream ConfigFile(GetExecDir() + "\\config\\gameInfo.txt");
     if (!ConfigFile.is_open())
