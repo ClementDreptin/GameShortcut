@@ -9,6 +9,7 @@
 #include <Windows.h>
 
 #include "IO.h"
+#include "Log.h"
 
 
 HRESULT BuildXLASTFile(const std::string &strGameName)
@@ -45,7 +46,7 @@ HRESULT BuildXLASTFile(const std::string &strGameName)
         L"</XboxLiveSubmissionProject>";
 
     std::wofstream XLASTFile(GetExecDir() + "\\tmp.xlast", std::ios::binary);
-    const std::codecvt_mode mode = (std::codecvt_mode)(std::generate_header | std::little_endian);
+    const std::codecvt_mode mode = static_cast<std::codecvt_mode>(std::generate_header | std::little_endian);
     std::locale UTF16Locale(XLASTFile.getloc(), new std::codecvt_utf16<wchar_t, 0x10FFFF, mode>);
 
     if (!XLASTFile.is_open())
@@ -56,6 +57,8 @@ HRESULT BuildXLASTFile(const std::string &strGameName)
     XLASTFile << wstrFileContent;
 
     XLASTFile.close();
+
+    LogInfo(L"XLAST file successfully generated (ID: " + wstrRandomNumberAsHex + L")");
 
     return S_OK;
 }

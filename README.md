@@ -17,7 +17,7 @@ GameShortcut is a utility to build shortcuts to games in the Games section of th
     <shortcut_name>
     <path_to_xex>
     ```
-- Run `Publiser.exe`
+- Run `Publisher.exe`
 - Reboot your console and go the Games section of your dashboard to see your shortcut
 
 ## How it works

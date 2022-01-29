@@ -26,10 +26,24 @@ void LogInfo(const std::string &strMessage)
     ResetConsoleColor(STD_OUTPUT_HANDLE);
 }
 
+void LogInfo(const std::wstring &wstrMessage)
+{
+    SetConsoleColor(STD_OUTPUT_HANDLE, 7);
+    std::wcout << wstrMessage << '\n';
+    ResetConsoleColor(STD_OUTPUT_HANDLE);
+}
+
 void LogError(const std::string &strMessage)
 {
     SetConsoleColor(STD_ERROR_HANDLE, FOREGROUND_RED);
     std::cerr << strMessage << '\n';
+    ResetConsoleColor(STD_ERROR_HANDLE);
+}
+
+void LogError(const std::wstring &wstrMessage)
+{
+    SetConsoleColor(STD_ERROR_HANDLE, FOREGROUND_RED);
+    std::wcerr << wstrMessage << '\n';
     ResetConsoleColor(STD_ERROR_HANDLE);
 }
 
