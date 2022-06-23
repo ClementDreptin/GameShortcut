@@ -33,27 +33,27 @@ static HRESULT GetGamePath(std::string &strPath)
     if (!ConfigFile.is_open())
         return E_FAIL;
 
-    std::vector<std::string> lines;
-    lines.reserve(2);
+    std::vector<std::string> Lines;
+    Lines.reserve(2);
     std::string strCurrentLine;
 
     while (std::getline(ConfigFile, strCurrentLine))
-        lines.emplace_back(strCurrentLine);
+        Lines.emplace_back(strCurrentLine);
 
     ConfigFile.close();
 
-    if (lines.size() != 2)
+    if (Lines.size() != 2)
         return E_FAIL;
 
-    strPath = lines[1];
+    strPath = Lines[1];
 
     return S_OK;
 }
 
 static HRESULT ShowMessageBoxError(const std::string& strMessage)
 {
-    XOVERLAPPED overlapped = { 0 };
-    MESSAGEBOX_RESULT result = { 0 };
+    XOVERLAPPED Overlapped = { 0 };
+    MESSAGEBOX_RESULT Result = { 0 };
 
     std::wstring wstrMessage;
     wstrMessage.assign(strMessage.begin(), strMessage.end());
@@ -68,17 +68,17 @@ static HRESULT ShowMessageBoxError(const std::string& strMessage)
         pwstrButtons,
         0,
         XMB_ERRORICON,
-        &result,
-        &overlapped
+        &Result,
+        &Overlapped
     );
 
     if (dwResult != ERROR_IO_PENDING)
         return E_FAIL;
 
-    while (!XHasOverlappedIoCompleted(&overlapped))
+    while (!XHasOverlappedIoCompleted(&Overlapped))
         Sleep(100);
 
-    dwResult = XGetOverlappedResult(&overlapped, nullptr, true);
+    dwResult = XGetOverlappedResult(&Overlapped, nullptr, true);
 
     if (dwResult == ERROR_ACCESS_DENIED)
         return E_FAIL;
