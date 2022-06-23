@@ -10,6 +10,7 @@
     <ProjectGuid>{B8E53CFE-1F72-4645-963D-351069AD6B71}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Publisher</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -25,9 +26,9 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)bin\</OutDir>
+    <OutDir>$(SolutionDir)build\bin\</OutDir>
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>$(SolutionDir)bin-int\</IntDir>
+    <IntDir>$(SolutionDir)build\obj\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
