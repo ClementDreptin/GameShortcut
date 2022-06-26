@@ -6,7 +6,6 @@
 
 #include <Windows.h>
 
-
 static void SetConsoleColor(DWORD dwStdHandle, uint16_t wColor)
 {
     HANDLE hConsole = GetStdHandle(dwStdHandle);

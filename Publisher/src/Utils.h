@@ -8,7 +8,6 @@
 
 #include "IO.h"
 
-
 HRESULT GetGameName(std::string &strName)
 {
     std::ifstream ConfigFile(GetExecDir() + "\\config\\gameInfo.txt");

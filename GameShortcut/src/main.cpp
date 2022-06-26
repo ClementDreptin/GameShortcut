@@ -4,7 +4,6 @@
 #include <vector>
 #include <cstdint>
 
-
 struct STRING
 {
     uint16_t wLength;
@@ -12,7 +11,9 @@ struct STRING
     const char *szBuffer;
 };
 
+// clang-format off
 #define MakeString(s) { static_cast<uint16_t>(strlen(s)), static_cast<uint16_t>(strlen(s)) + 1, s }
+// clang-format on
 
 extern "C" HRESULT __stdcall ObCreateSymbolicLink(STRING *, STRING *);
 
@@ -50,7 +51,7 @@ static HRESULT GetGamePath(std::string &strPath)
     return S_OK;
 }
 
-static HRESULT ShowMessageBoxError(const std::string& strMessage)
+static HRESULT ShowMessageBoxError(const std::string &strMessage)
 {
     XOVERLAPPED Overlapped = { 0 };
     MESSAGEBOX_RESULT Result = { 0 };

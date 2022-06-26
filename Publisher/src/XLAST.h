@@ -11,7 +11,6 @@
 #include "IO.h"
 #include "Log.h"
 
-
 HRESULT BuildXLASTFile(const std::string &strGameName)
 {
     std::wstring wstrGameName;
@@ -28,6 +27,7 @@ HRESULT BuildXLASTFile(const std::string &strGameName)
     std::wstring wstrRandomNumberAsHex(wszBuffer);
     std::transform(wstrRandomNumberAsHex.begin(), wstrRandomNumberAsHex.end(), wstrRandomNumberAsHex.begin(), towupper);
 
+    // clang-format off
     std::wstring wstrFileContent =
         L"<?xml version=\"1.0\" encoding=\"UTF-16\" standalone=\"no\"?>\n"
         L"<XboxLiveSubmissionProject Version=\"2.0.21256.0\">\n"
@@ -44,6 +44,7 @@ HRESULT BuildXLASTFile(const std::string &strGameName)
         L"		<ContentOffers clsid=\"{146485F0-DCD7-4AB1-97E1-9B0E64150499}\"/>\n"
         L"	</ContentProject>\n"
         L"</XboxLiveSubmissionProject>";
+    // clang-format on
 
     std::wofstream XLASTFile(GetExecDir() + "\\tmp.xlast", std::ios::binary);
     const std::codecvt_mode mode = static_cast<std::codecvt_mode>(std::generate_header | std::little_endian);
@@ -73,11 +74,11 @@ HRESULT ExecBLAST(const std::string &strXDKPath)
     ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_NOASYNC | SEE_MASK_NO_CONSOLE;
     ShExecInfo.hwnd = NULL;
     ShExecInfo.lpVerb = NULL;
-    ShExecInfo.lpFile = strBLASTPath.c_str();        
-    ShExecInfo.lpParameters = strBLASTParameters.c_str();   
+    ShExecInfo.lpFile = strBLASTPath.c_str();
+    ShExecInfo.lpParameters = strBLASTParameters.c_str();
     ShExecInfo.lpDirectory = GetExecDir().c_str();
     ShExecInfo.nShow = SW_SHOW;
-    ShExecInfo.hInstApp = NULL; 
+    ShExecInfo.hInstApp = NULL;
     ShellExecuteEx(&ShExecInfo);
     WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
     CloseHandle(ShExecInfo.hProcess);

@@ -6,7 +6,6 @@
 #include "XLAST.h"
 #include "Log.h"
 
-
 static HRESULT CheckXBDMConnection()
 {
     DWORD dwXboxNameSize = MAX_PATH;
@@ -14,7 +13,6 @@ static HRESULT CheckXBDMConnection()
 
     return DmGetNameOfXbox(szXboxName, &dwXboxNameSize, TRUE);
 }
-
 
 int __cdecl main()
 {

@@ -4,7 +4,6 @@
 
 #include <Windows.h>
 
-
 std::string GetExecDir()
 {
     char szPath[MAX_PATH] = { 0 };
