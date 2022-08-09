@@ -1,27 +1,35 @@
 #pragma once
 
-#include <string>
+#include <string.h>
 
 #include <Windows.h>
 
-std::string GetExecDir()
+HRESULT GetExecDir(char *szExecDir, size_t nMaxLength)
 {
     char szPath[MAX_PATH] = { 0 };
 
     GetModuleFileName(NULL, szPath, MAX_PATH);
 
-    std::string strExecFilePath(szPath);
+    const char *szLastBackslash = strrchr(szPath, '\\');
+    if (szLastBackslash == NULL)
+        return E_FAIL;
 
-    return strExecFilePath.substr(0, strExecFilePath.find_last_of("\\"));
+    memcpy_s(szExecDir, nMaxLength, szPath, strnlen_s(szPath, MAX_PATH) - strnlen_s(szLastBackslash, MAX_PATH));
+
+    return S_OK;
 }
 
-static HRESULT DeleteDirectory(const std::string &strDirPath)
+static HRESULT DeleteDirectory(const char *szDirPath)
 {
-    BOOL bResult;
-    std::string strPattern = strDirPath + "\\*.*";
+    BOOL bResult = FALSE;
+    char szPattern[MAX_PATH] = { 0 };
+    size_t nDirPathLength = strnlen_s(szDirPath, MAX_PATH);
+
+    strncpy_s(szPattern, szDirPath, nDirPathLength);
+    strncat_s(szPattern, "\\*.*", 4);
     WIN32_FIND_DATA FileInfo;
 
-    HANDLE hFile = FindFirstFile(strPattern.c_str(), &FileInfo);
+    HANDLE hFile = FindFirstFile(szPattern, &FileInfo);
     if (hFile == INVALID_HANDLE_VALUE)
         return E_FAIL;
 
@@ -30,21 +38,24 @@ static HRESULT DeleteDirectory(const std::string &strDirPath)
         if (FileInfo.cFileName[0] == '.')
             continue;
 
-        std::string strFilePath = strDirPath + "\\" + FileInfo.cFileName;
+        char szFilePath[MAX_PATH] = { 0 };
+        strncpy_s(szFilePath, szDirPath, nDirPathLength);
+        strncat_s(szFilePath, "\\", 1);
+        strncpy_s(szFilePath, FileInfo.cFileName, strnlen_s(FileInfo.cFileName, MAX_PATH));
 
         if (FileInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
         {
-            HRESULT hr = DeleteDirectory(strFilePath);
+            HRESULT hr = DeleteDirectory(szFilePath);
             if (FAILED(hr))
                 return E_FAIL;
         }
         else
         {
-            bResult = SetFileAttributes(strFilePath.c_str(), FILE_ATTRIBUTE_NORMAL);
+            bResult = SetFileAttributes(szFilePath, FILE_ATTRIBUTE_NORMAL);
             if (!bResult)
                 return E_FAIL;
 
-            bResult = DeleteFile(strFilePath.c_str());
+            bResult = DeleteFile(szFilePath);
             if (!bResult)
                 return E_FAIL;
         }
@@ -56,11 +67,11 @@ static HRESULT DeleteDirectory(const std::string &strDirPath)
     if (dwError != ERROR_NO_MORE_FILES)
         return E_FAIL;
 
-    bResult = SetFileAttributes(strDirPath.c_str(), FILE_ATTRIBUTE_NORMAL);
+    bResult = SetFileAttributes(szDirPath, FILE_ATTRIBUTE_NORMAL);
     if (!bResult)
         return E_FAIL;
 
-    bResult = RemoveDirectory(strDirPath.c_str());
+    bResult = RemoveDirectory(szDirPath);
     if (!bResult)
         return E_FAIL;
 
@@ -69,8 +80,17 @@ static HRESULT DeleteDirectory(const std::string &strDirPath)
 
 void Cleanup()
 {
-    DeleteDirectory(GetExecDir() + "\\Online");
+    char szPathToOnlineDir[MAX_PATH] = { 0 };
+    char szPathToXLASTFile[MAX_PATH] = { 0 };
 
-    std::string strXLASTFilePath = GetExecDir() + "\\tmp.xlast";
-    DeleteFile(strXLASTFilePath.c_str());
+    HRESULT hr = GetExecDir(szPathToOnlineDir, MAX_PATH);
+    if (FAILED(hr))
+        return;
+
+    strncpy_s(szPathToXLASTFile, szPathToOnlineDir, strnlen_s(szPathToOnlineDir, MAX_PATH));
+    strncat_s(szPathToXLASTFile, "\\tmp.xlast", 10);
+    strncat_s(szPathToOnlineDir, "\\Online", 7);
+
+    DeleteDirectory(szPathToOnlineDir);
+    DeleteFile(szPathToXLASTFile);
 }

@@ -10,7 +10,12 @@
 
 HRESULT GetGameName(std::string &strName)
 {
-    std::ifstream ConfigFile(GetExecDir() + "\\config\\gameInfo.txt");
+    char szExecDirBuffer[MAX_PATH] = { 0 };
+    HRESULT hr = GetExecDir(szExecDirBuffer, MAX_PATH);
+    if (FAILED(hr))
+        return E_FAIL;
+
+    std::ifstream ConfigFile(std::string(szExecDirBuffer) + "\\config\\gameInfo.txt");
     if (!ConfigFile.is_open())
         return E_FAIL;
 

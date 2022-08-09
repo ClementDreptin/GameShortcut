@@ -46,7 +46,12 @@ HRESULT BuildXLASTFile(const std::string &strGameName)
         L"</XboxLiveSubmissionProject>";
     // clang-format on
 
-    std::wofstream XLASTFile(GetExecDir() + "\\tmp.xlast", std::ios::binary);
+    char szExecDirBuffer[MAX_PATH] = { 0 };
+    HRESULT hr = GetExecDir(szExecDirBuffer, MAX_PATH);
+    if (FAILED(hr))
+        return E_FAIL;
+
+    std::wofstream XLASTFile(std::string(szExecDirBuffer) + "\\tmp.xlast", std::ios::binary);
     const std::codecvt_mode mode = static_cast<std::codecvt_mode>(std::generate_header | std::little_endian);
     std::locale UTF16Locale(XLASTFile.getloc(), new std::codecvt_utf16<wchar_t, 0x10FFFF, mode>);
 
@@ -67,8 +72,13 @@ HRESULT BuildXLASTFile(const std::string &strGameName)
 
 HRESULT ExecBLAST(const std::string &strXDKPath)
 {
+    char szExecDirBuffer[MAX_PATH] = { 0 };
+    HRESULT hr = GetExecDir(szExecDirBuffer, MAX_PATH);
+    if (FAILED(hr))
+        return E_FAIL;
+
+    std::string strBLASTParameters = std::string(szExecDirBuffer) + "\\tmp.xlast /build /install:Local /nologo";
     std::string strBLASTPath = strXDKPath + "\\bin\\win32\\blast.exe";
-    std::string strBLASTParameters = GetExecDir() + "\\tmp.xlast /build /install:Local /nologo";
 
     SHELLEXECUTEINFO ShExecInfo = { 0 };
     ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
@@ -77,7 +87,7 @@ HRESULT ExecBLAST(const std::string &strXDKPath)
     ShExecInfo.lpVerb = NULL;
     ShExecInfo.lpFile = strBLASTPath.c_str();
     ShExecInfo.lpParameters = strBLASTParameters.c_str();
-    ShExecInfo.lpDirectory = GetExecDir().c_str();
+    ShExecInfo.lpDirectory = szExecDirBuffer;
     ShExecInfo.nShow = SW_SHOW;
     ShExecInfo.hInstApp = NULL;
     ShellExecuteEx(&ShExecInfo);
