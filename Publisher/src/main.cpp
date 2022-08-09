@@ -59,7 +59,7 @@ int __cdecl main()
 
     Cleanup();
 
-    ExitSuccess();
+    ExitSuccess(NULL);
 
     return EXIT_SUCCESS;
 }

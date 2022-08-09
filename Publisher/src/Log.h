@@ -1,8 +1,6 @@
 #pragma once
 
-#include <iostream>
-#include <string>
-#include <cstdint>
+#include <stdint.h>
 
 #include <Windows.h>
 
@@ -18,44 +16,44 @@ static void ResetConsoleColor(DWORD dwStdHandle)
     SetConsoleTextAttribute(hConsole, FOREGROUND_INTENSITY | 7);
 }
 
-void LogInfo(const std::string &strMessage)
+void LogInfo(const char *szMessage)
 {
     SetConsoleColor(STD_OUTPUT_HANDLE, 7);
-    std::cout << strMessage << '\n';
+    fprintf_s(stdout, "%s\n", szMessage);
     ResetConsoleColor(STD_OUTPUT_HANDLE);
 }
 
-void LogInfo(const std::wstring &wstrMessage)
+void LogInfoW(const wchar_t *wszMessage)
 {
     SetConsoleColor(STD_OUTPUT_HANDLE, 7);
-    std::wcout << wstrMessage << '\n';
+    fwprintf_s(stdout, L"%s\n", wszMessage);
     ResetConsoleColor(STD_OUTPUT_HANDLE);
 }
 
-void LogError(const std::string &strMessage)
+void LogError(const char *szMessage)
 {
     SetConsoleColor(STD_ERROR_HANDLE, FOREGROUND_RED);
-    std::cerr << strMessage << '\n';
+    fprintf_s(stderr, "%s\n", szMessage);
     ResetConsoleColor(STD_ERROR_HANDLE);
 }
 
-void LogError(const std::wstring &wstrMessage)
+void LogErrorW(const wchar_t *wszMessage)
 {
     SetConsoleColor(STD_ERROR_HANDLE, FOREGROUND_RED);
-    std::wcerr << wstrMessage << '\n';
+    fwprintf_s(stderr, L"%s\n", wszMessage);
     ResetConsoleColor(STD_ERROR_HANDLE);
 }
 
-void ExitFailure(const std::string &strMessage)
+void ExitFailure(const char *szMessage)
 {
-    LogError(strMessage);
+    LogError(szMessage);
     system("pause");
 }
 
-void ExitSuccess(const std::string &strMessage = "")
+void ExitSuccess(const char *szMessage)
 {
-    if (strMessage != "")
-        LogInfo(strMessage);
+    if (szMessage != NULL)
+        LogInfo(szMessage);
 
     system("pause");
 }

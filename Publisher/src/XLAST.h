@@ -59,7 +59,8 @@ HRESULT BuildXLASTFile(const std::string &strGameName)
 
     XLASTFile.close();
 
-    LogInfo(L"XLAST file successfully generated (ID: " + wstrRandomNumberAsHex + L")");
+    std::wstring wstrSuccessMessage = L"XLAST file successfully generated (ID: " + wstrRandomNumberAsHex + L")";
+    LogInfoW(wstrSuccessMessage.c_str());
 
     return S_OK;
 }
