@@ -70,23 +70,30 @@ HRESULT BuildXLASTFile(const std::string &strGameName)
     return S_OK;
 }
 
-HRESULT ExecBLAST(const std::string &strXDKPath)
+HRESULT ExecBLAST(const char *szXDKPath)
 {
     char szExecDirBuffer[MAX_PATH] = { 0 };
+    char szBLASTParameters[MAX_PATH] = { 0 };
+    char szBLASTPath[MAX_PATH] = { 0 };
     HRESULT hr = GetExecDir(szExecDirBuffer, MAX_PATH);
     if (FAILED(hr))
         return E_FAIL;
 
-    std::string strBLASTParameters = std::string(szExecDirBuffer) + "\\tmp.xlast /build /install:Local /nologo";
-    std::string strBLASTPath = strXDKPath + "\\bin\\win32\\blast.exe";
+    size_t nExecDirLength = strnlen_s(szExecDirBuffer, MAX_PATH);
+    strncpy_s(szBLASTParameters, szExecDirBuffer, nExecDirLength);
+    strncat_s(szBLASTParameters, "\\tmp.xlast /build /install:Local /nologo", 40);
+
+    size_t nXDKPathLength = strnlen_s(szExecDirBuffer, MAX_PATH);
+    strncpy_s(szBLASTPath, szXDKPath, nXDKPathLength);
+    strncat_s(szBLASTPath, "\\bin\\win32\\blast.exe", 20);
 
     SHELLEXECUTEINFO ShExecInfo = { 0 };
     ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
     ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_NOASYNC | SEE_MASK_NO_CONSOLE;
     ShExecInfo.hwnd = NULL;
     ShExecInfo.lpVerb = NULL;
-    ShExecInfo.lpFile = strBLASTPath.c_str();
-    ShExecInfo.lpParameters = strBLASTParameters.c_str();
+    ShExecInfo.lpFile = szBLASTPath;
+    ShExecInfo.lpParameters = szBLASTParameters;
     ShExecInfo.lpDirectory = szExecDirBuffer;
     ShExecInfo.nShow = SW_SHOW;
     ShExecInfo.hInstApp = NULL;
@@ -100,7 +107,7 @@ HRESULT ExecBLAST(const std::string &strXDKPath)
         char szErrorMsg[200] = { 0 };
         strerror_s(szErrorMsg, 200, dwError);
 
-        std::cerr << szErrorMsg << '\n';
+        LogError(szErrorMsg);
 
         return E_FAIL;
     }
