@@ -1,37 +1,43 @@
 #pragma once
 
-#include <string>
-#include <fstream>
-#include <vector>
+#include <stdio.h>
+#include <stdint.h>
 
 #include <Windows.h>
 
 #include "IO.h"
 
-HRESULT GetGameName(std::string &strName)
+HRESULT GetGameName(char *szGameName, uint32_t nMaxLength)
 {
-    char szExecDirBuffer[MAX_PATH] = { 0 };
-    HRESULT hr = GetExecDir(szExecDirBuffer, MAX_PATH);
+    HRESULT hr = S_OK;
+    FILE *ConfigFile = NULL;
+    char szConfigFilePath[MAX_PATH] = { 0 };
+
+    hr = GetExecDir(szConfigFilePath, MAX_PATH);
     if (FAILED(hr))
+    {
+        fputs("Failed to read exec dir", stderr);
+        return hr;
+    }
+
+    strncat_s(szConfigFilePath, MAX_PATH, "\\config\\gameInfo.txt", 20);
+
+    if (fopen_s(&ConfigFile, szConfigFilePath, "r") != 0)
+    {
+        fprintf_s(stderr, "Failed to open config file at location %s\n", szConfigFilePath);
         return E_FAIL;
+    }
 
-    std::ifstream ConfigFile(std::string(szExecDirBuffer) + "\\config\\gameInfo.txt");
-    if (!ConfigFile.is_open())
+    if (fgets(szGameName, (int)nMaxLength, ConfigFile) == NULL)
+    {
+        fclose(ConfigFile);
         return E_FAIL;
+    }
 
-    std::vector<std::string> lines;
-    lines.reserve(2);
-    std::string strCurrentLine;
+    size_t nGameNameSize = strnlen_s(szGameName, nMaxLength);
+    szGameName[nGameNameSize - 1] = '\0';
 
-    while (std::getline(ConfigFile, strCurrentLine))
-        lines.emplace_back(strCurrentLine);
+    fclose(ConfigFile);
 
-    ConfigFile.close();
-
-    if (lines.size() != 2)
-        return E_FAIL;
-
-    strName = lines[0];
-
-    return S_OK;
+    return hr;
 }
