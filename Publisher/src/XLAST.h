@@ -7,21 +7,20 @@
 
 HRESULT BuildXLASTFile(const char *szGameName)
 {
+    HRESULT hr = S_OK;
+
+    char szFilePath[MAX_PATH] = { 0 };
     wchar_t wszGameName[50] = { 0 };
-    mbstowcs_s(NULL, wszGameName, 50, szGameName, _TRUNCATE);
 
     uint32_t nRandomNumber = 0x12345678;
-
     wchar_t wszRandomNumber[9] = { 0 };
-    _snwprintf_s(wszRandomNumber, 9, 9, L"%08x", nRandomNumber);
 
-    for (size_t i = 0; i < 9; i++)
-        wszRandomNumber[i] = towlower(wszRandomNumber[i]);
+    size_t i = 0;
 
+    size_t nWCharCount = 0;
+    size_t nWritten = 0;
+    FILE *pFile = NULL;
     wchar_t *wszFileContent = (wchar_t *)malloc(2048 * sizeof(wchar_t));
-    if (wszFileContent == NULL)
-        return E_FAIL;
-
     const wchar_t *wszFileContentFormat =
         L"<?xml version=\"1.0\" encoding=\"UTF-16\" standalone=\"no\"?>\n"
         L"<XboxLiveSubmissionProject Version=\"2.0.21256.0\">\n"
@@ -39,22 +38,29 @@ HRESULT BuildXLASTFile(const char *szGameName)
         L"    </ContentProject>\n"
         L"</XboxLiveSubmissionProject>";
 
+    mbstowcs_s(NULL, wszGameName, 50, szGameName, _TRUNCATE);
+    _snwprintf_s(wszRandomNumber, 9, 9, L"%08x", nRandomNumber);
+
+    for (i = 0; i < 9; i++)
+        wszRandomNumber[i] = towlower(wszRandomNumber[i]);
+
+    if (wszFileContent == NULL)
+        return E_FAIL;
+
     _snwprintf_s(wszFileContent, 2048, 2048, wszFileContentFormat, wszGameName, wszRandomNumber, wszGameName, wszGameName, wszGameName);
 
-    char szFilePath[MAX_PATH] = { 0 };
-    HRESULT hr = GetExecDir(szFilePath, MAX_PATH);
+    hr = GetExecDir(szFilePath, MAX_PATH);
     if (FAILED(hr))
         return E_FAIL;
 
     strncat_s(szFilePath, MAX_PATH, "\\tmp.xlast", _TRUNCATE);
 
-    FILE *pFile = NULL;
     fopen_s(&pFile, szFilePath, "w+, ccs=UTF-16LE");
     if (pFile == NULL)
         return E_FAIL;
 
-    size_t nWCharCount = wcsnlen_s(wszFileContent, 2048);
-    size_t nWritten = fwrite(wszFileContent, sizeof(wchar_t), nWCharCount, pFile);
+    nWCharCount = wcsnlen_s(wszFileContent, 2048);
+    nWritten = fwrite(wszFileContent, sizeof(wchar_t), nWCharCount, pFile);
 
     if (nWritten != nWCharCount)
     {
@@ -65,31 +71,31 @@ HRESULT BuildXLASTFile(const char *szGameName)
     fclose(pFile);
     free(wszFileContent);
 
-    wchar_t wszSuccessMessage[50] = { 0 };
-    _snwprintf_s(wszSuccessMessage, 50, 50, L"XLAST file successfully generated (ID: %s)", wszRandomNumber);
-    LogInfoW(wszSuccessMessage);
+    wprintf_s(L"XLAST file successfully generated (ID: %s)", wszRandomNumber);
 
     return S_OK;
 }
 
 HRESULT ExecBLAST(const char *szXDKPath)
 {
+    HRESULT hr = S_OK;
+
     char szExecDirBuffer[MAX_PATH] = { 0 };
     char szBLASTParameters[MAX_PATH] = { 0 };
     char szBLASTPath[MAX_PATH] = { 0 };
-    HRESULT hr = GetExecDir(szExecDirBuffer, MAX_PATH);
+
+    SHELLEXECUTEINFO ShExecInfo = { 0 };
+
+    hr = GetExecDir(szExecDirBuffer, MAX_PATH);
     if (FAILED(hr))
         return E_FAIL;
 
-    size_t nExecDirLength = strnlen_s(szExecDirBuffer, MAX_PATH);
-    strncpy_s(szBLASTParameters, szExecDirBuffer, nExecDirLength);
-    strncat_s(szBLASTParameters, "\\tmp.xlast /build /install:Local /nologo", 40);
+    strncpy_s(szBLASTParameters, MAX_PATH, szExecDirBuffer, _TRUNCATE);
+    strncat_s(szBLASTParameters, MAX_PATH, "\\tmp.xlast /build /install:Local /nologo", _TRUNCATE);
 
-    size_t nXDKPathLength = strnlen_s(szExecDirBuffer, MAX_PATH);
-    strncpy_s(szBLASTPath, szXDKPath, nXDKPathLength);
-    strncat_s(szBLASTPath, "\\bin\\win32\\blast.exe", 20);
+    strncpy_s(szBLASTPath, MAX_PATH, szXDKPath, _TRUNCATE);
+    strncat_s(szBLASTPath, MAX_PATH, "\\bin\\win32\\blast.exe", _TRUNCATE);
 
-    SHELLEXECUTEINFO ShExecInfo = { 0 };
     ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
     ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_NOASYNC | SEE_MASK_NO_CONSOLE;
     ShExecInfo.hwnd = NULL;

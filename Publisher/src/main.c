@@ -1,5 +1,9 @@
 #include <Windows.h>
+
+#pragma warning(push)
+#pragma warning(disable: 4214)
 #include <xbdm.h>
+#pragma warning(pop)
 
 #include "IO.h"
 #include "Utils.h"
@@ -16,13 +20,15 @@ static HRESULT CheckXBDMConnection()
 
 int __cdecl main()
 {
-    HRESULT hr;
+    HRESULT hr = S_OK;
+    errno_t err = 0;
+
     char *szXDKPath;
     size_t nXDKPathSize;
     char szGameName[50] = { 0 };
 
-    errno_t err = _dupenv_s(&szXDKPath, &nXDKPathSize, "xedk");
-    if (!szXDKPath || err)
+    err = _dupenv_s(&szXDKPath, &nXDKPathSize, "xedk");
+    if (szXDKPath == NULL || err != 0)
     {
         ExitFailure("You must have the Xbox 360 Development Kit (XDK) installed on your computer.");
         return EXIT_FAILURE;
