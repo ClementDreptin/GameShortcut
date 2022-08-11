@@ -1,7 +1,7 @@
 #include <Windows.h>
 
 #pragma warning(push)
-#pragma warning(disable: 4214)
+#pragma warning(disable : 4214)
 #include <xbdm.h>
 #pragma warning(pop)
 
@@ -23,8 +23,8 @@ int __cdecl main()
     HRESULT hr = S_OK;
     errno_t err = 0;
 
-    char *szXDKPath;
-    size_t nXDKPathSize;
+    char *szXDKPath = NULL;
+    size_t nXDKPathSize = 0;
     char szGameName[50] = { 0 };
 
     err = _dupenv_s(&szXDKPath, &nXDKPathSize, "xedk");
