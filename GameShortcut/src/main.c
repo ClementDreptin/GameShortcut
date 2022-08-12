@@ -10,7 +10,8 @@ typedef struct
     const char *szBuffer;
 } STRING;
 
-HRESULT __stdcall ObCreateSymbolicLink(STRING *, STRING *);
+void RtlInitAnsiString(STRING *, const char *);
+HRESULT ObCreateSymbolicLink(STRING *, STRING *);
 
 static HRESULT MountHdd()
 {
@@ -19,13 +20,8 @@ static HRESULT MountHdd()
     const char *szDestDrive = "\\??\\hdd:";
     const char *szHddDeviceName = "\\Device\\Harddisk0\\Partition1\\";
 
-    DeviceName.wLength = (uint16_t)strnlen_s(szHddDeviceName, MAX_PATH);
-    DeviceName.wMaxLength = (uint16_t)(strnlen_s(szHddDeviceName, MAX_PATH) + 1);
-    DeviceName.szBuffer = szHddDeviceName;
-
-    LinkName.wLength = (uint16_t)strnlen_s(szDestDrive, MAX_PATH);
-    LinkName.wMaxLength = (uint16_t)(strnlen_s(szDestDrive, MAX_PATH) + 1);
-    LinkName.szBuffer = szDestDrive;
+    RtlInitAnsiString(&DeviceName, szHddDeviceName);
+    RtlInitAnsiString(&LinkName, szDestDrive);
 
     return ObCreateSymbolicLink(&LinkName, &DeviceName);
 }
