@@ -73,7 +73,7 @@ HRESULT BuildXLASTFile(const char *szGameName)
     fclose(pFile);
     free(wszFileContent);
 
-    wprintf_s(L"XLAST file successfully generated (ID: %s)", wszRandomNumber);
+    wprintf_s(L"XLAST file successfully generated (ID: %s)\n", wszRandomNumber);
 
     return S_OK;
 }
