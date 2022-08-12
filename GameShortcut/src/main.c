@@ -31,7 +31,7 @@ static HRESULT GetGamePath(char *szGamePath, uint32_t nMaxLength)
     HRESULT hr = S_OK;
     size_t i = 0;
     FILE *ConfigFile = NULL;
-    size_t nGamePathSize = strnlen_s(szGamePath, nMaxLength);
+    size_t nGamePathSize = 0;
 
     if (fopen_s(&ConfigFile, "game:\\config\\gameInfo.txt", "r") != 0)
         return E_FAIL;
@@ -40,6 +40,7 @@ static HRESULT GetGamePath(char *szGamePath, uint32_t nMaxLength)
         if (fgets(szGamePath, (int)nMaxLength, ConfigFile) == NULL)
             return E_FAIL;
 
+    nGamePathSize = strnlen_s(szGamePath, nMaxLength);
     szGamePath[nGamePathSize - 1] = '\0';
 
     fclose(ConfigFile);

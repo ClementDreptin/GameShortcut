@@ -12,7 +12,7 @@ HRESULT GetGameName(char *szGameName, uint32_t nMaxLength)
     HRESULT hr = S_OK;
     FILE *ConfigFile = NULL;
     char szConfigFilePath[MAX_PATH] = { 0 };
-    size_t nGameNameSize = strnlen_s(szGameName, nMaxLength);
+    size_t nGameNameSize = 0;
 
     hr = GetExecDir(szConfigFilePath, MAX_PATH);
     if (FAILED(hr))
@@ -35,6 +35,7 @@ HRESULT GetGameName(char *szGameName, uint32_t nMaxLength)
         return E_FAIL;
     }
 
+    nGameNameSize = strnlen_s(szGameName, nMaxLength);
     szGameName[nGameNameSize - 1] = '\0';
 
     fclose(ConfigFile);
