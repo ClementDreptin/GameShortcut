@@ -7,20 +7,20 @@ typedef struct
 {
     uint16_t wLength;
     uint16_t wMaxLength;
-    const char *szBuffer;
+    char *szBuffer;
 } STRING;
 
-void RtlInitAnsiString(STRING *, const char *);
-HRESULT ObCreateSymbolicLink(STRING *, STRING *);
+void RtlInitAnsiString(STRING *pDestinationString, const char *szSourceString);
+HRESULT ObCreateSymbolicLink(STRING *pLinkName, STRING *pDevicePath);
 
 static HRESULT MountHdd()
 {
     STRING DeviceName = { 0 };
     STRING LinkName = { 0 };
     const char *szDestDrive = "\\??\\hdd:";
-    const char *szHddDeviceName = "\\Device\\Harddisk0\\Partition1\\";
+    const char *szHddDevicePath = "\\Device\\Harddisk0\\Partition1\\";
 
-    RtlInitAnsiString(&DeviceName, szHddDeviceName);
+    RtlInitAnsiString(&DeviceName, szHddDevicePath);
     RtlInitAnsiString(&LinkName, szDestDrive);
 
     return ObCreateSymbolicLink(&LinkName, &DeviceName);
@@ -30,20 +30,20 @@ static HRESULT GetGamePath(char *szGamePath, uint32_t nMaxLength)
 {
     HRESULT hr = S_OK;
     size_t i = 0;
-    FILE *ConfigFile = NULL;
+    FILE *pConfigFile = NULL;
     size_t nGamePathSize = 0;
 
-    if (fopen_s(&ConfigFile, "game:\\config\\gameInfo.txt", "r") != 0)
+    if (fopen_s(&pConfigFile, "game:\\config\\gameInfo.txt", "r") != 0)
         return E_FAIL;
 
     for (i = 0; i < 2; i++)
-        if (fgets(szGamePath, (int)nMaxLength, ConfigFile) == NULL)
+        if (fgets(szGamePath, (int)nMaxLength, pConfigFile) == NULL)
             return E_FAIL;
 
     nGamePathSize = strnlen_s(szGamePath, nMaxLength);
     szGamePath[nGamePathSize - 1] = '\0';
 
-    fclose(ConfigFile);
+    fclose(pConfigFile);
 
     return hr;
 }
@@ -55,7 +55,7 @@ static HRESULT ShowMessageBoxError(const char *szMessage)
     wchar_t wszMessage[200] = { 0 };
     XOVERLAPPED Overlapped = { 0 };
     MESSAGEBOX_RESULT Result = { 0 };
-    const wchar_t *pwstrButtons[] = { L"OK", L"Cancel" };
+    const wchar_t *pwszButtons[] = { L"OK", L"Cancel" };
 
     mbstowcs_s(NULL, wszMessage, 200, szMessage, _TRUNCATE);
 
@@ -63,8 +63,8 @@ static HRESULT ShowMessageBoxError(const char *szMessage)
         0,
         L"Error",
         wszMessage,
-        ARRAYSIZE(pwstrButtons),
-        pwstrButtons,
+        ARRAYSIZE(pwszButtons),
+        pwszButtons,
         0,
         XMB_ERRORICON,
         &Result,
@@ -85,7 +85,7 @@ static HRESULT ShowMessageBoxError(const char *szMessage)
     return S_OK;
 }
 
-int __cdecl main()
+int main()
 {
     HRESULT hr = S_OK;
     char szGamePath[MAX_PATH] = { 0 };
