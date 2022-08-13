@@ -126,7 +126,7 @@ static HRESULT DeleteDirectory(const char *szDirPath)
     return S_OK;
 }
 
-void Cleanup()
+void Cleanup(void)
 {
     HRESULT hr = S_OK;
     char szPathToOnlineDir[MAX_PATH] = { 0 };
@@ -262,7 +262,7 @@ HRESULT ExecBLAST(const char *szXDKPath)
     return S_OK;
 }
 
-HRESULT CheckXBDMConnection()
+HRESULT CheckXBDMConnection(void)
 {
     DWORD dwXboxNameSize = MAX_PATH;
     char szXboxName[MAX_PATH];

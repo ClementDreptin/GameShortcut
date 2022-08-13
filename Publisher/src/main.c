@@ -1,6 +1,6 @@
 #include "Utils.h"
 
-int __cdecl main()
+int main()
 {
     HRESULT hr = S_OK;
     errno_t err = 0;

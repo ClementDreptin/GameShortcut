@@ -8,13 +8,13 @@ HRESULT GetGameName(char *szGameName, uint32_t nMaxLength);
 
 HRESULT GetExecDir(char *szExecDir, size_t nMaxLength);
 
-void Cleanup();
+void Cleanup(void);
 
 HRESULT BuildXLASTFile(const char *szGameName);
 
 HRESULT ExecBLAST(const char *szXDKPath);
 
-HRESULT CheckXBDMConnection();
+HRESULT CheckXBDMConnection(void);
 
 void ExitSuccess(const char *szMessage);
 
