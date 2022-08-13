@@ -1,22 +1,4 @@
-#include <Windows.h>
-
-#pragma warning(push)
-#pragma warning(disable : 4214)
-#include <xbdm.h>
-#pragma warning(pop)
-
-#include "IO.h"
 #include "Utils.h"
-#include "XLAST.h"
-#include "Log.h"
-
-static HRESULT CheckXBDMConnection()
-{
-    DWORD dwXboxNameSize = MAX_PATH;
-    char szXboxName[MAX_PATH];
-
-    return DmGetNameOfXbox(szXboxName, &dwXboxNameSize, TRUE);
-}
 
 int __cdecl main()
 {

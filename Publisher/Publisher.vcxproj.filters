@@ -2,12 +2,10 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="src\main.c" />
+    <ClCompile Include="src\Utils.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Log.h" />
-    <ClInclude Include="src\IO.h" />
     <ClInclude Include="src\Utils.h" />
-    <ClInclude Include="src\XLAST.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="resources\icon.png" />

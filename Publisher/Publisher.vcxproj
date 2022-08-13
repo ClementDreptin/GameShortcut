@@ -58,12 +58,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.c" />
+    <ClCompile Include="src\Utils.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\IO.h" />
-    <ClInclude Include="src\Log.h" />
     <ClInclude Include="src\Utils.h" />
-    <ClInclude Include="src\XLAST.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="resources\icon.png">
