@@ -12,28 +12,28 @@ int main()
     err = _dupenv_s(&szXDKPath, &nXDKPathSize, "xedk");
     if (szXDKPath == NULL || err != 0)
     {
-        ExitFailure("You must have the Xbox 360 Development Kit (XDK) installed on your computer.");
+        system("pause");
         return EXIT_FAILURE;
     }
 
     hr = CheckXBDMConnection();
     if (FAILED(hr))
     {
-        ExitFailure("Could not connect to console.");
+        system("pause");
         return EXIT_FAILURE;
     }
 
     hr = GetGameName(szGameName, sizeof(szGameName));
     if (FAILED(hr))
     {
-        ExitFailure("The game information file (config\\gameInfo.txt) could not be loaded or has a wrong format.");
+        system("pause");
         return EXIT_FAILURE;
     }
 
     hr = BuildXLASTFile(szGameName);
     if (FAILED(hr))
     {
-        ExitFailure("Could not generate the XLAST file.");
+        system("pause");
         return EXIT_FAILURE;
     }
 
@@ -41,13 +41,13 @@ int main()
     if (FAILED(hr))
     {
         Cleanup();
-        ExitFailure("Could not execute BLAST.");
+        system("pause");
         return EXIT_FAILURE;
     }
 
     Cleanup();
 
-    ExitSuccess(NULL);
+    system("pause");
 
     return EXIT_SUCCESS;
 }

@@ -15,7 +15,3 @@ HRESULT BuildXLASTFile(const char *szGameName);
 HRESULT ExecBLAST(const char *szXDKPath);
 
 HRESULT CheckXBDMConnection(void);
-
-void ExitSuccess(const char *szMessage);
-
-void ExitFailure(const char *szMessage);

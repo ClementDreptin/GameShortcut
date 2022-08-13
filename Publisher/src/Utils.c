@@ -17,10 +17,16 @@ HRESULT GetGameName(char *szGameName, uint32_t nMaxLength)
     char szConfigFilePath[MAX_PATH] = { 0 };
     size_t nGameNameSize = 0;
 
+    if (szGameName != NULL)
+    {
+        fputs("szGameName is NULL", stderr);
+        return E_FAIL;
+    }
+
     hr = GetExecDir(szConfigFilePath, MAX_PATH);
     if (FAILED(hr))
     {
-        fputs("Failed to read exec dir", stderr);
+        fputs("Failed to read execution diriectory", stderr);
         return hr;
     }
 
@@ -34,6 +40,7 @@ HRESULT GetGameName(char *szGameName, uint32_t nMaxLength)
 
     if (fgets(szGameName, (int)nMaxLength, pConfigFile) == NULL)
     {
+        fprintf_s(stderr, "Failed to read from config file at location %s\n", szConfigFilePath);
         fclose(pConfigFile);
         return E_FAIL;
     }
@@ -50,6 +57,12 @@ HRESULT GetExecDir(char *szExecDir, size_t nMaxLength)
 {
     char szPath[MAX_PATH] = { 0 };
     char *szLastBackslash = NULL;
+
+    if (szExecDir == NULL)
+    {
+        fputs("szExecDir is NULL", stderr);
+        return E_FAIL;
+    }
 
     GetModuleFileName(NULL, szPath, MAX_PATH);
 
@@ -73,12 +86,21 @@ static HRESULT DeleteDirectory(const char *szDirPath)
     WIN32_FIND_DATA FileInfo = { 0 };
     HANDLE hFile = INVALID_HANDLE_VALUE;
 
+    if (szDirPath == NULL)
+    {
+        fputs("szDirPath is NULL", stderr);
+        return E_FAIL;
+    }
+
     strncpy_s(szPattern, MAX_PATH, szDirPath, _TRUNCATE);
     strncat_s(szPattern, MAX_PATH, "\\*.*", _TRUNCATE);
 
     hFile = FindFirstFile(szPattern, &FileInfo);
     if (hFile == INVALID_HANDLE_VALUE)
+    {
+        fprintf_s(stderr, "Could not find file at location %s\n", szDirPath);
         return E_FAIL;
+    }
 
     while (FindNextFile(hFile, &FileInfo))
     {
@@ -101,11 +123,17 @@ static HRESULT DeleteDirectory(const char *szDirPath)
         {
             bResult = SetFileAttributes(szFilePath, FILE_ATTRIBUTE_NORMAL);
             if (!bResult)
+            {
+                fprintf_s(stderr, "Could not set file attributes of %s\n", szFilePath);
                 return E_FAIL;
+            }
 
             bResult = DeleteFile(szFilePath);
             if (!bResult)
+            {
+                fprintf_s(stderr, "Could not delete %s\n", szFilePath);
                 return E_FAIL;
+            }
         }
     }
 
@@ -117,11 +145,17 @@ static HRESULT DeleteDirectory(const char *szDirPath)
 
     bResult = SetFileAttributes(szDirPath, FILE_ATTRIBUTE_NORMAL);
     if (!bResult)
+    {
+        fprintf_s(stderr, "Could not set file attributes of %s\n", szDirPath);
         return E_FAIL;
+    }
 
     bResult = RemoveDirectory(szDirPath);
     if (!bResult)
+    {
+        fprintf_s(stderr, "Could not delete %s\n", szDirPath);
         return E_FAIL;
+    }
 
     return S_OK;
 }
@@ -159,7 +193,7 @@ HRESULT BuildXLASTFile(const char *szGameName)
     size_t nWCharCount = 0;
     size_t nWritten = 0;
     FILE *pFile = NULL;
-    wchar_t *wszFileContent = (wchar_t *)malloc(2048 * sizeof(wchar_t));
+    wchar_t *wszFileContent = NULL;
     const wchar_t *wszFileContentFormat =
         L"<?xml version=\"1.0\" encoding=\"UTF-16\" standalone=\"no\"?>\n"
         L"<XboxLiveSubmissionProject Version=\"2.0.21256.0\">\n"
@@ -177,14 +211,24 @@ HRESULT BuildXLASTFile(const char *szGameName)
         L"    </ContentProject>\n"
         L"</XboxLiveSubmissionProject>";
 
+    if (szGameName == NULL)
+    {
+        fputs("szGameName is NULL", stderr);
+        return E_FAIL;
+    }
+
+    wszFileContent = (wchar_t *)malloc(2048 * sizeof(wchar_t));
+    if (wszFileContent == NULL)
+    {
+        fputs("Allocating memory for XLAST file content failed", stderr);
+        return E_FAIL;
+    }
+
     mbstowcs_s(NULL, wszGameName, 50, szGameName, _TRUNCATE);
     _snwprintf_s(wszRandomNumber, 9, 9, L"%08x", nRandomNumber);
 
     for (i = 0; i < 9; i++)
         wszRandomNumber[i] = towlower(wszRandomNumber[i]);
-
-    if (wszFileContent == NULL)
-        return E_FAIL;
 
     _snwprintf_s(wszFileContent, 2048, 2048, wszFileContentFormat, wszGameName, wszRandomNumber, wszGameName, wszGameName, wszGameName);
 
@@ -196,13 +240,17 @@ HRESULT BuildXLASTFile(const char *szGameName)
 
     fopen_s(&pFile, szFilePath, "w+, ccs=UTF-16LE");
     if (pFile == NULL)
+    {
+        fprintf_s(stderr, "Could not open XLAST file at location %s\n", szFilePath);
         return E_FAIL;
+    }
 
     nWCharCount = wcsnlen_s(wszFileContent, 2048);
     nWritten = fwrite(wszFileContent, sizeof(wchar_t), nWCharCount, pFile);
 
     if (nWritten != nWCharCount)
     {
+        fprintf_s(stderr, "Could not write XLAST file, was expecting to write %llu characters but wrote %llu\n", nWCharCount, nWritten);
         fclose(pFile);
         return E_FAIL;
     }
@@ -224,6 +272,12 @@ HRESULT ExecBLAST(const char *szXDKPath)
     char szBLASTPath[MAX_PATH] = { 0 };
 
     SHELLEXECUTEINFO ShExecInfo = { 0 };
+
+    if (szXDKPath == NULL)
+    {
+        fputs("szXDKPath is NULL", stderr);
+        return E_FAIL;
+    }
 
     hr = GetExecDir(szExecDirBuffer, MAX_PATH);
     if (FAILED(hr))
@@ -264,23 +318,13 @@ HRESULT ExecBLAST(const char *szXDKPath)
 
 HRESULT CheckXBDMConnection(void)
 {
+    HRESULT hr = S_OK;
     DWORD dwXboxNameSize = MAX_PATH;
     char szXboxName[MAX_PATH];
 
-    return DmGetNameOfXbox(szXboxName, &dwXboxNameSize, TRUE);
-}
+    hr = DmGetNameOfXbox(szXboxName, &dwXboxNameSize, TRUE);
+    if (FAILED(hr))
+        fputs("Could not connect to console", stderr);
 
-void ExitSuccess(const char *szMessage)
-{
-    fputs(szMessage, stderr);
-
-    system("pause");
-}
-
-void ExitFailure(const char *szMessage)
-{
-    if (szMessage != NULL)
-        puts(szMessage);
-
-    system("pause");
+    return hr;
 }
