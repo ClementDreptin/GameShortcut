@@ -3,6 +3,7 @@
 
 #include <xtl.h>
 
+// Structs and function prototypes from xboxkrnl.exe
 typedef struct
 {
     uint16_t wLength;
@@ -13,6 +14,9 @@ typedef struct
 void RtlInitAnsiString(STRING *pDestinationString, const char *szSourceString);
 HRESULT ObCreateSymbolicLink(STRING *pLinkName, STRING *pDevicePath);
 
+// Allow the game to access the entire hard drive.
+// The system only allows executables to access the directory they live in and binds it to
+// the "game:" drive. Everything else if not accessible unless you create a symbolic link.
 static HRESULT MountHdd()
 {
     STRING DeviceName = { 0 };
@@ -20,12 +24,15 @@ static HRESULT MountHdd()
     const char *szDestDrive = "\\??\\hdd:";
     const char *szHddDevicePath = "\\Device\\Harddisk0\\Partition1\\";
 
+    // Initialize the STRING structs
     RtlInitAnsiString(&DeviceName, szHddDevicePath);
     RtlInitAnsiString(&LinkName, szDestDrive);
 
+    // Bind the root of the hard drive to the "hdd:" drive.
     return ObCreateSymbolicLink(&LinkName, &DeviceName);
 }
 
+// Read the path to the executable from the config file and write it to szGamePath.
 static HRESULT GetGamePath(char *szGamePath, uint32_t nMaxLength)
 {
     HRESULT hr = S_OK;
@@ -33,14 +40,18 @@ static HRESULT GetGamePath(char *szGamePath, uint32_t nMaxLength)
     FILE *pConfigFile = NULL;
     size_t nGamePathSize = 0;
 
+    // Open the config file in read-only mode
     if (fopen_s(&pConfigFile, "game:\\config\\gameInfo.txt", "r") != 0)
         return E_FAIL;
 
+    // Read the second line of the config file into szGamePath
     for (i = 0; i < 2; i++)
         if (fgets(szGamePath, (int)nMaxLength, pConfigFile) == NULL)
             return E_FAIL;
 
     nGamePathSize = strnlen_s(szGamePath, nMaxLength);
+
+    // Remove the new line character at the end of the line
     szGamePath[nGamePathSize - 1] = '\0';
 
     fclose(pConfigFile);
@@ -48,6 +59,7 @@ static HRESULT GetGamePath(char *szGamePath, uint32_t nMaxLength)
     return hr;
 }
 
+// Display an error dialog on the console.
 static HRESULT ShowMessageBoxError(const char *szMessage)
 {
     DWORD dwResult = 0;
@@ -57,6 +69,7 @@ static HRESULT ShowMessageBoxError(const char *szMessage)
     MESSAGEBOX_RESULT Result = { 0 };
     const wchar_t *pwszButtons[] = { L"OK", L"Cancel" };
 
+    // Convert szMessage, which is a narrow string, to a wide string
     mbstowcs_s(NULL, wszMessage, 200, szMessage, _TRUNCATE);
 
     dwResult = XShowMessageBoxUI(
@@ -74,9 +87,11 @@ static HRESULT ShowMessageBoxError(const char *szMessage)
     if (dwResult != ERROR_IO_PENDING)
         return E_FAIL;
 
+    // Wait until the user closes the dialog
     while (!XHasOverlappedIoCompleted(&Overlapped))
         Sleep(100);
 
+    // Get how the user closed the dialog (by clicking "OK", "Cancel" or the Xbox button on the controller
     dwResult = XGetOverlappedResult(&Overlapped, NULL, TRUE);
 
     if (dwResult == ERROR_ACCESS_DENIED)
@@ -90,6 +105,7 @@ int main()
     HRESULT hr = S_OK;
     char szGamePath[MAX_PATH] = { 0 };
 
+    // Mount the entire hard drive to be able to access any path in it
     hr = MountHdd();
     if (FAILED(hr))
     {
@@ -97,6 +113,7 @@ int main()
         return EXIT_FAILURE;
     }
 
+    // Read the path to the executable
     hr = GetGamePath(szGamePath, MAX_PATH);
     if (FAILED(hr))
     {
@@ -104,5 +121,6 @@ int main()
         return EXIT_FAILURE;
     }
 
+    // Launch the executable
     XLaunchNewImage(szGamePath, 0);
 }
