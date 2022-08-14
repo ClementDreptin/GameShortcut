@@ -3,6 +3,8 @@
 
 #include <Windows.h>
 
+// XBDM uses bit field types other than int which triggers a warning at warning level 4
+// so we just disable it for XBDM
 #pragma warning(push)
 #pragma warning(disable : 4214)
 #include <xbdm.h>
