@@ -10,188 +10,6 @@
 
 #include "Utils.h"
 
-HRESULT GetGameName(char *szGameName, uint32_t nMaxLength)
-{
-    HRESULT hr = S_OK;
-    FILE *pConfigFile = NULL;
-    char szConfigFilePath[MAX_PATH] = { 0 };
-    size_t nGameNameSize = 0;
-
-    if (szGameName != NULL)
-    {
-        fputs("szGameName is NULL", stderr);
-        return E_FAIL;
-    }
-
-    hr = GetExecDir(szConfigFilePath, MAX_PATH);
-    if (FAILED(hr))
-    {
-        fputs("Failed to read execution diriectory", stderr);
-        return hr;
-    }
-
-    // Append the path to the config file to the executable directory to get the
-    // absolute path to the config file
-    strncat_s(szConfigFilePath, MAX_PATH, "\\config\\gameInfo.txt", _TRUNCATE);
-
-    // Open the config file in read-only mode
-    if (fopen_s(&pConfigFile, szConfigFilePath, "r") != 0)
-    {
-        fprintf_s(stderr, "Failed to open config file at location %s\n", szConfigFilePath);
-        return E_FAIL;
-    }
-
-    // Read the first line of the config file, which contains the shortcut name, into szGameName
-    if (fgets(szGameName, (int)nMaxLength, pConfigFile) == NULL)
-    {
-        fprintf_s(stderr, "Failed to read from config file at location %s\n", szConfigFilePath);
-        fclose(pConfigFile);
-        return E_FAIL;
-    }
-
-    nGameNameSize = strnlen_s(szGameName, nMaxLength);
-
-    // Remove the new line character at the end of the line
-    szGameName[nGameNameSize - 1] = '\0';
-
-    fclose(pConfigFile);
-
-    return hr;
-}
-
-HRESULT GetExecDir(char *szExecDir, size_t nMaxLength)
-{
-    char szPath[MAX_PATH] = { 0 };
-    char *szLastBackslash = NULL;
-    size_t nExecDirPathLength = 0;
-
-    if (szExecDir == NULL)
-    {
-        fputs("szExecDir is NULL", stderr);
-        return E_FAIL;
-    }
-
-    // Get the absolute path to the Publisher executable
-    GetModuleFileName(NULL, szPath, MAX_PATH);
-
-    // Get a pointer to the last backslash in the path
-    szLastBackslash = strrchr(szPath, '\\');
-
-    // It should not happen but just in case no blackslashes were found, return
-    if (szLastBackslash == NULL)
-        return E_FAIL;
-
-    // Copy szPath into szExecDir but only up until the last backslash
-    nExecDirPathLength = strnlen_s(szPath, MAX_PATH) - strnlen_s(szLastBackslash, MAX_PATH);
-    strncpy_s(szExecDir, nMaxLength, szPath, nExecDirPathLength);
-
-    return S_OK;
-}
-
-// Delete a directory and all of its files/subdirectories.
-static HRESULT DeleteDirectory(const char *szDirPath)
-{
-    HRESULT hr = S_OK;
-    BOOL bResult = FALSE;
-    DWORD dwError = 0;
-
-    char szPattern[MAX_PATH] = { 0 };
-
-    WIN32_FIND_DATA FileInfo = { 0 };
-    HANDLE hFile = INVALID_HANDLE_VALUE;
-
-    if (szDirPath == NULL)
-    {
-        fputs("szDirPath is NULL", stderr);
-        return E_FAIL;
-    }
-
-    // Create the pattern to start searching the files
-    strncpy_s(szPattern, MAX_PATH, szDirPath, _TRUNCATE);
-    strncat_s(szPattern, MAX_PATH, "\\*.*", _TRUNCATE);
-
-    // Find the first file corresponding to the pattern
-    hFile = FindFirstFile(szPattern, &FileInfo);
-    if (hFile == INVALID_HANDLE_VALUE)
-    {
-        fprintf_s(stderr, "Could not find file at location %s\n", szDirPath);
-        return E_FAIL;
-    }
-
-    // Loop as long as there are files in the directory
-    while (FindNextFile(hFile, &FileInfo))
-    {
-        char szFilePath[MAX_PATH] = { 0 };
-
-        // Don't try to get "." (current directory) or ".." (parent directory)
-        if (!strcmp(FileInfo.cFileName, ".") || !strcmp(FileInfo.cFileName, ".."))
-            continue;
-
-        // Create the full path to the current file to delete
-        strncpy_s(szFilePath, MAX_PATH, szDirPath, _TRUNCATE);
-        strncat_s(szFilePath, MAX_PATH, "\\", _TRUNCATE);
-        strncat_s(szFilePath, MAX_PATH, FileInfo.cFileName, _TRUNCATE);
-
-        // If the current file is a directory, start the recursion
-        if (FileInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-        {
-            hr = DeleteDirectory(szFilePath);
-            if (FAILED(hr))
-                return E_FAIL;
-        }
-        else
-        {
-            // Delete the file
-            bResult = DeleteFile(szFilePath);
-            if (!bResult)
-            {
-                fprintf_s(stderr, "Could not delete %s\n", szFilePath);
-                return E_FAIL;
-            }
-        }
-    }
-
-    FindClose(hFile);
-
-    // Check for errors
-    dwError = GetLastError();
-    if (dwError != ERROR_NO_MORE_FILES)
-        return E_FAIL;
-
-    // Remove the directory once it's empty
-    bResult = RemoveDirectory(szDirPath);
-    if (!bResult)
-    {
-        fprintf_s(stderr, "Could not delete %s\n", szDirPath);
-        return E_FAIL;
-    }
-
-    return S_OK;
-}
-
-void Cleanup(void)
-{
-    HRESULT hr = S_OK;
-    char szPathToOnlineDir[MAX_PATH] = { 0 };
-    char szPathToXLASTFile[MAX_PATH] = { 0 };
-
-    // Read the executable directory path and write it to szPathToOnlineDir
-    hr = GetExecDir(szPathToOnlineDir, MAX_PATH);
-    if (FAILED(hr))
-        return;
-
-    // Copy the executable directory path (which lives in szPathToOnlineDir) into szPathToXLASTFile
-    strncpy_s(szPathToXLASTFile, MAX_PATH, szPathToOnlineDir, _TRUNCATE);
-
-    // Finish the paths to the XLAST file and Online directory
-    strncat_s(szPathToXLASTFile, MAX_PATH, "\\tmp.xlast", _TRUNCATE);
-    strncat_s(szPathToOnlineDir, MAX_PATH, "\\Online", _TRUNCATE);
-
-    // Delete the Online directory and the XLAST config file
-    DeleteDirectory(szPathToOnlineDir);
-    DeleteFile(szPathToXLASTFile);
-}
-
 HRESULT BuildXLASTFile(const char *szGameName)
 {
     HRESULT hr = S_OK;
@@ -354,6 +172,84 @@ HRESULT ExecBLAST(const char *szXDKPath)
     return S_OK;
 }
 
+HRESULT GetExecDir(char *szExecDir, size_t nMaxLength)
+{
+    char szPath[MAX_PATH] = { 0 };
+    char *szLastBackslash = NULL;
+    size_t nExecDirPathLength = 0;
+
+    if (szExecDir == NULL)
+    {
+        fputs("szExecDir is NULL", stderr);
+        return E_FAIL;
+    }
+
+    // Get the absolute path to the Publisher executable
+    GetModuleFileName(NULL, szPath, MAX_PATH);
+
+    // Get a pointer to the last backslash in the path
+    szLastBackslash = strrchr(szPath, '\\');
+
+    // It should not happen but just in case no blackslashes were found, return
+    if (szLastBackslash == NULL)
+        return E_FAIL;
+
+    // Copy szPath into szExecDir but only up until the last backslash
+    nExecDirPathLength = strnlen_s(szPath, MAX_PATH) - strnlen_s(szLastBackslash, MAX_PATH);
+    strncpy_s(szExecDir, nMaxLength, szPath, nExecDirPathLength);
+
+    return S_OK;
+}
+
+HRESULT GetGameName(char *szGameName, uint32_t nMaxLength)
+{
+    HRESULT hr = S_OK;
+    FILE *pConfigFile = NULL;
+    char szConfigFilePath[MAX_PATH] = { 0 };
+    size_t nGameNameSize = 0;
+
+    if (szGameName != NULL)
+    {
+        fputs("szGameName is NULL", stderr);
+        return E_FAIL;
+    }
+
+    hr = GetExecDir(szConfigFilePath, MAX_PATH);
+    if (FAILED(hr))
+    {
+        fputs("Failed to read execution diriectory", stderr);
+        return hr;
+    }
+
+    // Append the path to the config file to the executable directory to get the
+    // absolute path to the config file
+    strncat_s(szConfigFilePath, MAX_PATH, "\\config\\gameInfo.txt", _TRUNCATE);
+
+    // Open the config file in read-only mode
+    if (fopen_s(&pConfigFile, szConfigFilePath, "r") != 0)
+    {
+        fprintf_s(stderr, "Failed to open config file at location %s\n", szConfigFilePath);
+        return E_FAIL;
+    }
+
+    // Read the first line of the config file, which contains the shortcut name, into szGameName
+    if (fgets(szGameName, (int)nMaxLength, pConfigFile) == NULL)
+    {
+        fprintf_s(stderr, "Failed to read from config file at location %s\n", szConfigFilePath);
+        fclose(pConfigFile);
+        return E_FAIL;
+    }
+
+    nGameNameSize = strnlen_s(szGameName, nMaxLength);
+
+    // Remove the new line character at the end of the line
+    szGameName[nGameNameSize - 1] = '\0';
+
+    fclose(pConfigFile);
+
+    return hr;
+}
+
 HRESULT CheckXBDMConnection(void)
 {
     HRESULT hr = S_OK;
@@ -366,4 +262,108 @@ HRESULT CheckXBDMConnection(void)
         fputs("Could not connect to console", stderr);
 
     return hr;
+}
+
+// Delete a directory and all of its files/subdirectories.
+static HRESULT DeleteDirectory(const char *szDirPath)
+{
+    HRESULT hr = S_OK;
+    BOOL bResult = FALSE;
+    DWORD dwError = 0;
+
+    char szPattern[MAX_PATH] = { 0 };
+
+    WIN32_FIND_DATA FileInfo = { 0 };
+    HANDLE hFile = INVALID_HANDLE_VALUE;
+
+    if (szDirPath == NULL)
+    {
+        fputs("szDirPath is NULL", stderr);
+        return E_FAIL;
+    }
+
+    // Create the pattern to start searching the files
+    strncpy_s(szPattern, MAX_PATH, szDirPath, _TRUNCATE);
+    strncat_s(szPattern, MAX_PATH, "\\*.*", _TRUNCATE);
+
+    // Find the first file corresponding to the pattern
+    hFile = FindFirstFile(szPattern, &FileInfo);
+    if (hFile == INVALID_HANDLE_VALUE)
+    {
+        fprintf_s(stderr, "Could not find file at location %s\n", szDirPath);
+        return E_FAIL;
+    }
+
+    // Loop as long as there are files in the directory
+    while (FindNextFile(hFile, &FileInfo))
+    {
+        char szFilePath[MAX_PATH] = { 0 };
+
+        // Don't try to get "." (current directory) or ".." (parent directory)
+        if (!strcmp(FileInfo.cFileName, ".") || !strcmp(FileInfo.cFileName, ".."))
+            continue;
+
+        // Create the full path to the current file to delete
+        strncpy_s(szFilePath, MAX_PATH, szDirPath, _TRUNCATE);
+        strncat_s(szFilePath, MAX_PATH, "\\", _TRUNCATE);
+        strncat_s(szFilePath, MAX_PATH, FileInfo.cFileName, _TRUNCATE);
+
+        // If the current file is a directory, start the recursion
+        if (FileInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        {
+            hr = DeleteDirectory(szFilePath);
+            if (FAILED(hr))
+                return E_FAIL;
+        }
+        else
+        {
+            // Delete the file
+            bResult = DeleteFile(szFilePath);
+            if (!bResult)
+            {
+                fprintf_s(stderr, "Could not delete %s\n", szFilePath);
+                return E_FAIL;
+            }
+        }
+    }
+
+    FindClose(hFile);
+
+    // Check for errors
+    dwError = GetLastError();
+    if (dwError != ERROR_NO_MORE_FILES)
+        return E_FAIL;
+
+    // Remove the directory once it's empty
+    bResult = RemoveDirectory(szDirPath);
+    if (!bResult)
+    {
+        fprintf_s(stderr, "Could not delete %s\n", szDirPath);
+        return E_FAIL;
+    }
+
+    return S_OK;
+}
+
+void Cleanup(void)
+{
+    HRESULT hr = S_OK;
+    char szPathToOnlineDir[MAX_PATH] = { 0 };
+    char szPathToXLASTFile[MAX_PATH] = { 0 };
+
+    // Read the executable directory path and write it to szPathToOnlineDir
+    hr = GetExecDir(szPathToOnlineDir, MAX_PATH);
+    if (FAILED(hr))
+        return;
+
+    // Copy the executable directory path (which lives in szPathToOnlineDir) into szPathToXLASTFile
+    strncpy_s(szPathToXLASTFile, MAX_PATH, szPathToOnlineDir, _TRUNCATE);
+
+    // Finish the paths to the XLAST file and Online directory
+    strncat_s(szPathToXLASTFile, MAX_PATH, "\\tmp.xlast", _TRUNCATE);
+    strncat_s(szPathToOnlineDir, MAX_PATH, "\\Online", _TRUNCATE);
+
+    // Delete the Online directory and the XLAST config file
+    DeleteDirectory(szPathToOnlineDir);
+    DeleteFile(szPathToXLASTFile);
 }
