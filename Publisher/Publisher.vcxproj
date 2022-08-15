@@ -52,7 +52,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <ProgramDatabaseFile>$(IntDir)$(ProjectName)\$(ProjectName).pdb</ProgramDatabaseFile>
-      <AdditionalDependencies>xbdm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>xbdm.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(XEDK)\lib\win32\vs2010;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

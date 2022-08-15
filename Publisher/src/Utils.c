@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include <Windows.h>
+#include <Shlwapi.h>
 
 // XBDM uses bit field types other than int which triggers a warning at warning level 4
 // so we just disable it for XBDM
@@ -19,9 +20,8 @@ HRESULT BuildXLASTFile(const char *szGameName)
     char szFilePath[MAX_PATH] = { 0 };
     wchar_t wszGameName[50] = { 0 };
 
-    // TODO: create an actual random number, based on the shortcut name if possible
-    uint32_t nRandomNumber = 0x12345678;
-    wchar_t wszRandomNumber[9] = { 0 };
+    uint32_t nGameNameHash = 0;
+    wchar_t wszGameNameHash[9] = { 0 };
 
     size_t i = 0;
 
@@ -60,18 +60,25 @@ HRESULT BuildXLASTFile(const char *szGameName)
         return E_FAIL;
     }
 
+    hr = HashData((uint8_t *)szGameName, (uint32_t)strnlen_s(szGameName, 50), (uint8_t *)&nGameNameHash, 4);
+    if (FAILED(hr))
+    {
+        fputs("Could not hash to game name", stderr);
+        return E_FAIL;
+    }
+
     // Convert szGameName, which is a narrow string, to a wide string
     mbstowcs_s(NULL, wszGameName, 50, szGameName, _TRUNCATE);
 
     // Write the string representation of the random number in wszRandomNumber
-    _snwprintf_s(wszRandomNumber, 9, 9, L"%08x", nRandomNumber);
+    _snwprintf_s(wszGameNameHash, 9, 9, L"%08x", nGameNameHash);
 
     // Convert the string representation of the random number to uppercase
     for (i = 0; i < 9; i++)
-        wszRandomNumber[i] = towupper(wszRandomNumber[i]);
+        wszGameNameHash[i] = towupper(wszGameNameHash[i]);
 
     // Create the actual config file content from the game name and the random number and write it to wszFileContent
-    _snwprintf_s(wszFileContent, 2048, 2048, wszFileContentFormat, wszGameName, wszRandomNumber, wszGameName, wszGameName, wszGameName);
+    _snwprintf_s(wszFileContent, 2048, 2048, wszFileContentFormat, wszGameName, wszGameNameHash, wszGameName, wszGameName, wszGameName);
 
     // Read the executable directory path and write it to szFilePath
     hr = GetExecDir(szFilePath, MAX_PATH);
@@ -107,7 +114,7 @@ HRESULT BuildXLASTFile(const char *szGameName)
     fclose(pFile);
     free(wszFileContent);
 
-    wprintf_s(L"XLAST file successfully generated (ID: %s)\n", wszRandomNumber);
+    wprintf_s(L"XLAST file successfully generated (ID: %s)\n", wszGameNameHash);
 
     return S_OK;
 }
