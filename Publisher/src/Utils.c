@@ -24,8 +24,8 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
 
     size_t i = 0;
 
-    size_t nWCharCount = 0;
-    size_t nWritten = 0;
+    size_t nWCharToWrite = 0;
+    size_t nWCharWritten = 0;
     FILE *pFile = NULL;
     wchar_t *wszFileContent = NULL;
     const wchar_t *wszFileContentFormat =
@@ -51,7 +51,7 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
         return E_FAIL;
     }
 
-    // Allocate enough memory on the heap to hold the config file content
+    // Allocate enough memory on the heap to hold the XLAST file content
     wszFileContent = (wchar_t *)malloc(2048 * sizeof(wchar_t));
     if (wszFileContent == NULL)
     {
@@ -77,7 +77,7 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
     for (i = 0; i < 9; i++)
         wszShortcutNameHash[i] = towupper(wszShortcutNameHash[i]);
 
-    // Create the actual config file content from the shortcut name and the random number and write it to wszFileContent
+    // Create the actual XLAST file content from the shortcut name and the random number and write it to wszFileContent
     _snwprintf_s(wszFileContent, 2048, 2048, wszFileContentFormat, wszShortcutName, wszShortcutNameHash, wszShortcutName, wszShortcutName, wszShortcutName);
 
     // Read the executable directory path and write it to szFilePath
@@ -85,10 +85,10 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
     if (FAILED(hr))
         return E_FAIL;
 
-    // Append the config file name to the executable directory path to get the absolute path to the config file
+    // Append the XLAST file name to the executable directory path to get the absolute path to the XLAST file
     strncat_s(szFilePath, MAX_PATH, "\\tmp.xlast", _TRUNCATE);
 
-    // Open the config file in write mode and create it if it doesn't exist (which should always be the case)
+    // Open the XLAST file in write mode and create it if it doesn't exist (which should always be the case)
     fopen_s(&pFile, szFilePath, "w+, ccs=UTF-16LE");
     if (pFile == NULL)
     {
@@ -96,21 +96,21 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
         return E_FAIL;
     }
 
-    // Write the config file content to the actual file on disk and get the amount of characters written
-    nWritten = fwrite(wszFileContent, sizeof(wchar_t), nWCharCount, pFile);
+    // Write the XLAST file content to the actual file on disk and get the amount of characters written
+    nWCharWritten = fwrite(wszFileContent, sizeof(wchar_t), nWCharToWrite, pFile);
 
     // Get the amount of characters that are supposed to be written
-    nWCharCount = wcsnlen_s(wszFileContent, 2048);
+    nWCharToWrite = wcsnlen_s(wszFileContent, 2048);
 
-    // Make sure all characters from the config file content were written to disk
-    if (nWritten != nWCharCount)
+    // Make sure all characters from the XLAST file content were written to disk
+    if (nWCharWritten != nWCharToWrite)
     {
-        fprintf_s(stderr, "Could not write XLAST file, was expecting to write %llu characters but wrote %llu\n", nWCharCount, nWritten);
+        fprintf_s(stderr, "Could not write XLAST file, was expecting to write %llu characters but wrote %llu\n", nWCharToWrite, nWCharWritten);
         fclose(pFile);
         return E_FAIL;
     }
 
-    // Close the config file and free the buffer that was holding its content
+    // Close the XLAST file and free the buffer that was holding its content
     fclose(pFile);
     free(wszFileContent);
 
@@ -119,7 +119,7 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
     return S_OK;
 }
 
-HRESULT ExecBLAST(const char *szXDKPath)
+HRESULT ExecBLAST(const char *szXDKDirPath)
 {
     HRESULT hr = S_OK;
 
@@ -127,11 +127,11 @@ HRESULT ExecBLAST(const char *szXDKPath)
     char szBLASTParameters[MAX_PATH] = { 0 };
     char szBLASTPath[MAX_PATH] = { 0 };
 
-    SHELLEXECUTEINFO ShExecInfo = { 0 };
+    SHELLEXECUTEINFO ShellExecInfo = { 0 };
 
-    if (szXDKPath == NULL)
+    if (szXDKDirPath == NULL)
     {
-        fputs("szXDKPath is NULL", stderr);
+        fputs("szXDKDirPath is NULL", stderr);
         return E_FAIL;
     }
 
@@ -145,29 +145,29 @@ HRESULT ExecBLAST(const char *szXDKPath)
     strncat_s(szBLASTParameters, MAX_PATH, "\\tmp.xlast /build /install:Local /nologo", _TRUNCATE);
 
     // Create the absolute path to the BLAST executable
-    strncpy_s(szBLASTPath, MAX_PATH, szXDKPath, _TRUNCATE);
+    strncpy_s(szBLASTPath, MAX_PATH, szXDKDirPath, _TRUNCATE);
     strncat_s(szBLASTPath, MAX_PATH, "\\bin\\win32\\blast.exe", _TRUNCATE);
 
     // Populate the SHELLEXECUTEINFO struct
-    ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
-    ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_NOASYNC | SEE_MASK_NO_CONSOLE;
-    ShExecInfo.hwnd = NULL;
-    ShExecInfo.lpVerb = NULL;
-    ShExecInfo.lpFile = szBLASTPath;
-    ShExecInfo.lpParameters = szBLASTParameters;
-    ShExecInfo.lpDirectory = szExecDirBuffer;
-    ShExecInfo.nShow = SW_SHOW;
-    ShExecInfo.hInstApp = NULL;
+    ShellExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+    ShellExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_NOASYNC | SEE_MASK_NO_CONSOLE;
+    ShellExecInfo.hwnd = NULL;
+    ShellExecInfo.lpVerb = NULL;
+    ShellExecInfo.lpFile = szBLASTPath;
+    ShellExecInfo.lpParameters = szBLASTParameters;
+    ShellExecInfo.lpDirectory = szExecDirBuffer;
+    ShellExecInfo.nShow = SW_SHOW;
+    ShellExecInfo.hInstApp = NULL;
 
     // Execute the command
-    ShellExecuteEx(&ShExecInfo);
+    ShellExecuteEx(&ShellExecInfo);
 
     // Wait for the command's process to complete
-    WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
-    CloseHandle(ShExecInfo.hProcess);
+    WaitForSingleObject(ShellExecInfo.hProcess, INFINITE);
+    CloseHandle(ShellExecInfo.hProcess);
 
     // Get the status code returned by the BLAST process and check if it returned an error
-    if ((int)ShExecInfo.hInstApp <= 32)
+    if ((int)ShellExecInfo.hInstApp <= 32)
     {
         DWORD dwError = GetLastError();
         char szErrorMsg[200] = { 0 };
@@ -372,7 +372,7 @@ void Cleanup(void)
     strncat_s(szPathToXLASTFile, MAX_PATH, "\\tmp.xlast", _TRUNCATE);
     strncat_s(szPathToOnlineDir, MAX_PATH, "\\Online", _TRUNCATE);
 
-    // Delete the Online directory and the XLAST config file
+    // Delete the Online directory and the XLAST file
     DeleteDirectory(szPathToOnlineDir);
     DeleteFile(szPathToXLASTFile);
 }

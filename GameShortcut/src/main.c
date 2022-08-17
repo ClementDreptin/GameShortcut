@@ -1,10 +1,9 @@
 #include <stdint.h>
 #include <stdio.h>
-
 #include <xtl.h>
 
 // Structs and function prototypes from xboxkrnl.exe
-typedef struct
+typedef struct _STRING
 {
     uint16_t wLength;
     uint16_t wMaxLength;
@@ -21,12 +20,12 @@ static HRESULT MountHdd()
 {
     STRING DeviceName = { 0 };
     STRING LinkName = { 0 };
-    const char *szDestDrive = "\\??\\hdd:";
+    const char *szDestinationDrive = "\\??\\hdd:";
     const char *szHddDevicePath = "\\Device\\Harddisk0\\Partition1\\";
 
     // Initialize the STRING structs
     RtlInitAnsiString(&DeviceName, szHddDevicePath);
-    RtlInitAnsiString(&LinkName, szDestDrive);
+    RtlInitAnsiString(&LinkName, szDestinationDrive);
 
     // Bind the root of the hard drive to the "hdd:" drive.
     return ObCreateSymbolicLink(&LinkName, &DeviceName);
@@ -91,7 +90,7 @@ static HRESULT ShowMessageBoxError(const char *szMessage)
     while (!XHasOverlappedIoCompleted(&Overlapped))
         Sleep(100);
 
-    // Get how the user closed the dialog (by clicking "OK", "Cancel" or the Xbox button on the controller
+    // Get how the user closed the dialog (by clicking "OK", "Cancel" or the Xbox button on the controller)
     dwResult = XGetOverlappedResult(&Overlapped, NULL, TRUE);
 
     if (dwResult == ERROR_ACCESS_DENIED)

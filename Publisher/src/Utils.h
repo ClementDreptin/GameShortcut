@@ -9,7 +9,7 @@
 HRESULT BuildXLASTFile(const char *szShortcutName);
 
 // Run BLAST in a separate process.
-HRESULT ExecBLAST(const char *szXDKPath);
+HRESULT ExecBLAST(const char *szXDKDirPath);
 
 // Get the path of the directory the Publisher executable lives in and write it to szShortcutName.
 HRESULT GetExecDir(char *szExecDir, size_t nMaxLength);
