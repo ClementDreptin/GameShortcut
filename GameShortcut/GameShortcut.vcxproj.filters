@@ -4,6 +4,6 @@
     <ClCompile Include="src\main.c" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="config\gameInfo.txt" />
+    <CustomBuild Include="config\shortcutInfo.txt" />
   </ItemGroup>
 </Project>

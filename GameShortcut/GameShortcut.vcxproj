@@ -70,7 +70,7 @@
     <ClCompile Include="src\main.c" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="config\gameInfo.txt">
+    <CustomBuild Include="config\shortcutInfo.txt">
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Xbox 360'">copy "%(FullPath)" "$(OutDir)config\%(Filename)%(Extension)"</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Xbox 360'">Copy config file %(FullPath)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Xbox 360'">$(OutDir)config\%(Filename)%(Extension)</Outputs>
