@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <xtl.h>
 
+#define ERROR_LENGTH 200
+
 // Structs and function prototypes from xboxkrnl.exe
 typedef struct _STRING
 {
@@ -63,13 +65,13 @@ static HRESULT ShowMessageBoxError(const char *szMessage)
 {
     DWORD dwResult = 0;
 
-    wchar_t wszMessage[200] = { 0 };
+    wchar_t wszMessage[ERROR_LENGTH] = { 0 };
     XOVERLAPPED Overlapped = { 0 };
     MESSAGEBOX_RESULT Result = { 0 };
     const wchar_t *pwszButtons[] = { L"OK", L"Cancel" };
 
     // Convert szMessage, which is a narrow string, to a wide string
-    mbstowcs_s(NULL, wszMessage, 200, szMessage, _TRUNCATE);
+    mbstowcs_s(NULL, wszMessage, ERROR_LENGTH, szMessage, _TRUNCATE);
 
     dwResult = XShowMessageBoxUI(
         0,

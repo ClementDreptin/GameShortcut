@@ -12,6 +12,10 @@
 
 #include "Utils.h"
 
+#define FILE_CONTENT_MAX_LENGTH 2048
+#define ERROR_LENGTH 200
+#define HASH_LENGTH sizeof(uint32_t) + 1
+
 HRESULT BuildXLASTFile(const char *szShortcutName)
 {
     HRESULT hr = S_OK;
@@ -20,7 +24,7 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
     wchar_t wszShortcutName[SHORCUT_NAME_LENGTH] = { 0 };
 
     uint32_t nShortcutNameHash = 0;
-    wchar_t wszShortcutNameHash[9] = { 0 };
+    wchar_t wszShortcutNameHash[HASH_LENGTH] = { 0 };
 
     size_t i = 0;
 
@@ -52,7 +56,7 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
     }
 
     // Allocate enough memory on the heap to hold the XLAST file content
-    wszFileContent = (wchar_t *)malloc(2048 * sizeof(wchar_t));
+    wszFileContent = (wchar_t *)malloc(FILE_CONTENT_MAX_LENGTH * sizeof(wchar_t));
     if (wszFileContent == NULL)
     {
         fputs("Allocating memory for XLAST file content failed", stderr);
@@ -60,7 +64,13 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
     }
 
     // Create a hash from the shortcut name and use it has title ID for the shortcut
-    hr = HashData((uint8_t *)szShortcutName, (uint32_t)strnlen_s(szShortcutName, SHORCUT_NAME_LENGTH), (uint8_t *)&nShortcutNameHash, 4);
+    hr = HashData(
+        (uint8_t *)szShortcutName,
+        (uint32_t)strnlen_s(szShortcutName, SHORCUT_NAME_LENGTH),
+        (uint8_t *)&nShortcutNameHash,
+        sizeof(uint32_t)
+    );
+
     if (FAILED(hr))
     {
         fputs("Could not hash to shortcut name", stderr);
@@ -71,14 +81,24 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
     mbstowcs_s(NULL, wszShortcutName, SHORCUT_NAME_LENGTH, szShortcutName, _TRUNCATE);
 
     // Write the string representation of the random number in wszRandomNumber
-    _snwprintf_s(wszShortcutNameHash, 9, 9, L"%08x", nShortcutNameHash);
+    _snwprintf_s(wszShortcutNameHash, HASH_LENGTH, HASH_LENGTH, L"%08x", nShortcutNameHash);
 
     // Convert the string representation of the random number to uppercase
-    for (i = 0; i < 9; i++)
+    for (i = 0; i < HASH_LENGTH; i++)
         wszShortcutNameHash[i] = towupper(wszShortcutNameHash[i]);
 
     // Create the actual XLAST file content from the shortcut name and the random number and write it to wszFileContent
-    _snwprintf_s(wszFileContent, 2048, 2048, wszFileContentFormat, wszShortcutName, wszShortcutNameHash, wszShortcutName, wszShortcutName, wszShortcutName);
+    _snwprintf_s(
+        wszFileContent,
+        FILE_CONTENT_MAX_LENGTH,
+        FILE_CONTENT_MAX_LENGTH,
+        wszFileContentFormat,
+        wszShortcutName,
+        wszShortcutNameHash,
+        wszShortcutName,
+        wszShortcutName,
+        wszShortcutName
+    );
 
     // Read the executable directory path and write it to szFilePath
     hr = GetExecDir(szFilePath, MAX_PATH);
@@ -100,7 +120,7 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
     nWCharWritten = fwrite(wszFileContent, sizeof(wchar_t), nWCharToWrite, pFile);
 
     // Get the amount of characters that are supposed to be written
-    nWCharToWrite = wcsnlen_s(wszFileContent, 2048);
+    nWCharToWrite = wcsnlen_s(wszFileContent, FILE_CONTENT_MAX_LENGTH);
 
     // Make sure all characters from the XLAST file content were written to disk
     if (nWCharWritten != nWCharToWrite)
@@ -170,8 +190,8 @@ HRESULT ExecBLAST(const char *szXDKDirPath)
     if ((int)ShellExecInfo.hInstApp <= 32)
     {
         DWORD dwError = GetLastError();
-        char szErrorMsg[200] = { 0 };
-        strerror_s(szErrorMsg, 200, dwError);
+        char szErrorMsg[ERROR_LENGTH] = { 0 };
+        strerror_s(szErrorMsg, ERROR_LENGTH, dwError);
 
         fputs(szErrorMsg, stderr);
 
