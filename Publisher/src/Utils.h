@@ -5,16 +5,16 @@
 #include <Windows.h>
 
 // Create the XML config file XLAST uses to build the shortcut.
-HRESULT BuildXLASTFile(const char *szGameName);
+HRESULT BuildXLASTFile(const char *szShortcutName);
 
 // Run BLAST in a separate process.
 HRESULT ExecBLAST(const char *szXDKPath);
 
-// Get the path of the directory the Publisher executable lives in and write it to szGameName.
+// Get the path of the directory the Publisher executable lives in and write it to szShortcutName.
 HRESULT GetExecDir(char *szExecDir, size_t nMaxLength);
 
-// Read the name of the shortcut from the config file and write it to szGameName.
-HRESULT GetGameName(char *szGameName, uint32_t nMaxLength);
+// Read the name of the shortcut from the config file and write it to szShortcutName.
+HRESULT GetShortcutName(char *szShortcutName, uint32_t nMaxLength);
 
 // Make sure an XBDM connection is properly set up.
 HRESULT CheckXBDMConnection(void);

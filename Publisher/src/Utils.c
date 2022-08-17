@@ -13,15 +13,15 @@
 
 #include "Utils.h"
 
-HRESULT BuildXLASTFile(const char *szGameName)
+HRESULT BuildXLASTFile(const char *szShortcutName)
 {
     HRESULT hr = S_OK;
 
     char szFilePath[MAX_PATH] = { 0 };
-    wchar_t wszGameName[50] = { 0 };
+    wchar_t wszShortcutName[50] = { 0 };
 
-    uint32_t nGameNameHash = 0;
-    wchar_t wszGameNameHash[9] = { 0 };
+    uint32_t nShortcutNameHash = 0;
+    wchar_t wszShortcutNameHash[9] = { 0 };
 
     size_t i = 0;
 
@@ -46,9 +46,9 @@ HRESULT BuildXLASTFile(const char *szGameName)
         L"    </ContentProject>\n"
         L"</XboxLiveSubmissionProject>";
 
-    if (szGameName == NULL)
+    if (szShortcutName == NULL)
     {
-        fputs("szGameName is NULL", stderr);
+        fputs("szShortcutName is NULL", stderr);
         return E_FAIL;
     }
 
@@ -60,25 +60,26 @@ HRESULT BuildXLASTFile(const char *szGameName)
         return E_FAIL;
     }
 
-    hr = HashData((uint8_t *)szGameName, (uint32_t)strnlen_s(szGameName, 50), (uint8_t *)&nGameNameHash, 4);
+    // Create a hash from the shortcut name and use it has title ID for the shortcut
+    hr = HashData((uint8_t *)szShortcutName, (uint32_t)strnlen_s(szShortcutName, 50), (uint8_t *)&nShortcutNameHash, 4);
     if (FAILED(hr))
     {
-        fputs("Could not hash to game name", stderr);
+        fputs("Could not hash to shortcut name", stderr);
         return E_FAIL;
     }
 
-    // Convert szGameName, which is a narrow string, to a wide string
-    mbstowcs_s(NULL, wszGameName, 50, szGameName, _TRUNCATE);
+    // Convert szShortcutName, which is a narrow string, to a wide string
+    mbstowcs_s(NULL, wszShortcutName, 50, szShortcutName, _TRUNCATE);
 
     // Write the string representation of the random number in wszRandomNumber
-    _snwprintf_s(wszGameNameHash, 9, 9, L"%08x", nGameNameHash);
+    _snwprintf_s(wszShortcutNameHash, 9, 9, L"%08x", nShortcutNameHash);
 
     // Convert the string representation of the random number to uppercase
     for (i = 0; i < 9; i++)
-        wszGameNameHash[i] = towupper(wszGameNameHash[i]);
+        wszShortcutNameHash[i] = towupper(wszShortcutNameHash[i]);
 
-    // Create the actual config file content from the game name and the random number and write it to wszFileContent
-    _snwprintf_s(wszFileContent, 2048, 2048, wszFileContentFormat, wszGameName, wszGameNameHash, wszGameName, wszGameName, wszGameName);
+    // Create the actual config file content from the shortcut name and the random number and write it to wszFileContent
+    _snwprintf_s(wszFileContent, 2048, 2048, wszFileContentFormat, wszShortcutName, wszShortcutNameHash, wszShortcutName, wszShortcutName, wszShortcutName);
 
     // Read the executable directory path and write it to szFilePath
     hr = GetExecDir(szFilePath, MAX_PATH);
@@ -114,7 +115,7 @@ HRESULT BuildXLASTFile(const char *szGameName)
     fclose(pFile);
     free(wszFileContent);
 
-    wprintf_s(L"XLAST file successfully generated (ID: %s)\n", wszGameNameHash);
+    wprintf_s(L"XLAST file successfully generated (ID: %s)\n", wszShortcutNameHash);
 
     return S_OK;
 }
@@ -210,23 +211,23 @@ HRESULT GetExecDir(char *szExecDir, size_t nMaxLength)
     return S_OK;
 }
 
-HRESULT GetGameName(char *szGameName, uint32_t nMaxLength)
+HRESULT GetShortcutName(char *szShortcutName, uint32_t nMaxLength)
 {
     HRESULT hr = S_OK;
     FILE *pConfigFile = NULL;
     char szConfigFilePath[MAX_PATH] = { 0 };
-    size_t nGameNameSize = 0;
+    size_t nShortcutNameSize = 0;
 
-    if (szGameName != NULL)
+    if (szShortcutName != NULL)
     {
-        fputs("szGameName is NULL", stderr);
+        fputs("szShortcutName is NULL", stderr);
         return E_FAIL;
     }
 
     hr = GetExecDir(szConfigFilePath, MAX_PATH);
     if (FAILED(hr))
     {
-        fputs("Failed to read execution diriectory", stderr);
+        fputs("Failed to read execution directory", stderr);
         return hr;
     }
 
@@ -241,18 +242,18 @@ HRESULT GetGameName(char *szGameName, uint32_t nMaxLength)
         return E_FAIL;
     }
 
-    // Read the first line of the config file, which contains the shortcut name, into szGameName
-    if (fgets(szGameName, (int)nMaxLength, pConfigFile) == NULL)
+    // Read the first line of the config file, which contains the shortcut name, into szShortcutName
+    if (fgets(szShortcutName, (int)nMaxLength, pConfigFile) == NULL)
     {
         fprintf_s(stderr, "Failed to read from config file at location %s\n", szConfigFilePath);
         fclose(pConfigFile);
         return E_FAIL;
     }
 
-    nGameNameSize = strnlen_s(szGameName, nMaxLength);
+    nShortcutNameSize = strnlen_s(szShortcutName, nMaxLength);
 
     // Remove the new line character at the end of the line
-    szGameName[nGameNameSize - 1] = '\0';
+    szShortcutName[nShortcutNameSize - 1] = '\0';
 
     fclose(pConfigFile);
 
