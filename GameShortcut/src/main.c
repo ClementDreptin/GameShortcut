@@ -40,7 +40,7 @@ static HRESULT GetGamePath(char *szGamePath, uint32_t nMaxLength)
     size_t nGamePathSize = 0;
 
     // Open the config file in read-only mode
-    if (fopen_s(&pConfigFile, "game:\\config\\gameInfo.txt", "r") != 0)
+    if (fopen_s(&pConfigFile, "game:\\config\\shortcutInfo.txt", "r") != 0)
         return E_FAIL;
 
     // Read the second line of the config file into szGamePath
@@ -116,7 +116,7 @@ int main()
     hr = GetGamePath(szGamePath, MAX_PATH);
     if (FAILED(hr))
     {
-        ShowMessageBoxError("The game information file (config\\gameInfo.txt) could not be loaded or has a wrong format.");
+        ShowMessageBoxError("The game information file (config\\shortcutInfo.txt) could not be loaded or has a wrong format.");
         return EXIT_FAILURE;
     }
 

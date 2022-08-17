@@ -37,7 +37,7 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
         L"        </LanguageSettings>\n"
         L"        <Contents clsid=\"{0D8B38B9-F5A8-4050-8F8D-81F67E3B2456}\">\n"
         L"            <Folder clsid=\"{0D8B38B9-F5A8-4050-8F8D-81F67E3B2456}\" TargetName=\"config\">\n"
-        L"                <File clsid=\"{8A0BC3DD-B402-4080-8E34-C22144FC1ECE}\" SourceName=\".\\gameInfo.txt\" TargetName=\"gameInfo.txt\"/>\n"
+        L"                <File clsid=\"{8A0BC3DD-B402-4080-8E34-C22144FC1ECE}\" SourceName=\".\\shortcutInfo.txt\" TargetName=\"shortcutInfo.txt\"/>\n"
         L"            </Folder>\n"
         L"            <File clsid=\"{8A0BC3DD-B402-4080-8E34-C22144FC1ECE}\" SourceName=\".\\default.xex\" TargetName=\"default.xex\"/>\n"
         L"        </Contents>\n"
@@ -232,7 +232,7 @@ HRESULT GetShortcutName(char *szShortcutName, uint32_t nMaxLength)
 
     // Append the path to the config file to the executable directory to get the
     // absolute path to the config file
-    strncat_s(szConfigFilePath, MAX_PATH, "\\config\\gameInfo.txt", _TRUNCATE);
+    strncat_s(szConfigFilePath, MAX_PATH, "\\config\\shortcutInfo.txt", _TRUNCATE);
 
     // Open the config file in read-only mode
     if (fopen_s(&pConfigFile, szConfigFilePath, "r") != 0)
