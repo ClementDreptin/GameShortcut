@@ -5,12 +5,12 @@ int main()
     HRESULT hr = S_OK;
     errno_t err = 0;
 
-    char *szXDKPath = NULL;
-    size_t nXDKPathSize = 0;
+    char *szXDKDirPath = NULL;
+    size_t nXDKDirPathSize = 0;
     char szGameName[50] = { 0 };
 
-    err = _dupenv_s(&szXDKPath, &nXDKPathSize, "xedk");
-    if (szXDKPath == NULL || err != 0)
+    err = _dupenv_s(&szXDKDirPath, &nXDKDirPathSize, "xedk");
+    if (szXDKDirPath == NULL || err != 0)
     {
         system("pause");
         return EXIT_FAILURE;
@@ -37,7 +37,7 @@ int main()
         return EXIT_FAILURE;
     }
 
-    hr = ExecBLAST(szXDKPath);
+    hr = ExecBLAST(szXDKDirPath);
     if (FAILED(hr))
     {
         Cleanup();
