@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-
 #include <Windows.h>
 #include <Shlwapi.h>
 
@@ -18,7 +17,7 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
     HRESULT hr = S_OK;
 
     char szFilePath[MAX_PATH] = { 0 };
-    wchar_t wszShortcutName[50] = { 0 };
+    wchar_t wszShortcutName[SHORCUT_NAME_LENGTH] = { 0 };
 
     uint32_t nShortcutNameHash = 0;
     wchar_t wszShortcutNameHash[9] = { 0 };
@@ -61,7 +60,7 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
     }
 
     // Create a hash from the shortcut name and use it has title ID for the shortcut
-    hr = HashData((uint8_t *)szShortcutName, (uint32_t)strnlen_s(szShortcutName, 50), (uint8_t *)&nShortcutNameHash, 4);
+    hr = HashData((uint8_t *)szShortcutName, (uint32_t)strnlen_s(szShortcutName, SHORCUT_NAME_LENGTH), (uint8_t *)&nShortcutNameHash, 4);
     if (FAILED(hr))
     {
         fputs("Could not hash to shortcut name", stderr);
@@ -69,7 +68,7 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
     }
 
     // Convert szShortcutName, which is a narrow string, to a wide string
-    mbstowcs_s(NULL, wszShortcutName, 50, szShortcutName, _TRUNCATE);
+    mbstowcs_s(NULL, wszShortcutName, SHORCUT_NAME_LENGTH, szShortcutName, _TRUNCATE);
 
     // Write the string representation of the random number in wszRandomNumber
     _snwprintf_s(wszShortcutNameHash, 9, 9, L"%08x", nShortcutNameHash);

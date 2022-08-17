@@ -7,7 +7,7 @@ int main()
 
     char *szXDKDirPath = NULL;
     size_t nXDKDirPathSize = 0;
-    char szShortcutName[50] = { 0 };
+    char szShortcutName[SHORCUT_NAME_LENGTH] = { 0 };
 
     err = _dupenv_s(&szXDKDirPath, &nXDKDirPathSize, "xedk");
     if (szXDKDirPath == NULL || err != 0)
@@ -23,7 +23,7 @@ int main()
         return EXIT_FAILURE;
     }
 
-    hr = GetShortcutName(szShortcutName, sizeof(szShortcutName));
+    hr = GetShortcutName(szShortcutName, SHORCUT_NAME_LENGTH);
     if (FAILED(hr))
     {
         system("pause");

@@ -1,8 +1,9 @@
 #pragma once
 
 #include <stdint.h>
-
 #include <Windows.h>
+
+#define SHORCUT_NAME_LENGTH 50
 
 // Create the XML config file XLAST uses to build the shortcut.
 HRESULT BuildXLASTFile(const char *szShortcutName);
