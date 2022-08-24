@@ -15,7 +15,7 @@ HRESULT ExecBLAST(const char *szXDKDirPath);
 HRESULT GetExecDir(char *szExecDir, size_t nMaxLength);
 
 // Read the name of the shortcut from the config file and write it to szShortcutName.
-HRESULT GetShortcutName(char *szShortcutName, uint32_t nMaxLength);
+HRESULT GetShortcutName(char *szShortcutName, size_t nMaxLength);
 
 // Make sure an XBDM connection is properly set up.
 HRESULT CheckXBDMConnection(void);

@@ -80,14 +80,14 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
     // Convert szShortcutName, which is a narrow string, to a wide string
     mbstowcs_s(NULL, wszShortcutName, SHORCUT_NAME_LENGTH, szShortcutName, _TRUNCATE);
 
-    // Write the string representation of the random number in wszRandomNumber
+    // Write the string representation of the shortcut name hash in wszShortcutNameHash
     _snwprintf_s(wszShortcutNameHash, HASH_LENGTH, HASH_LENGTH, L"%08x", nShortcutNameHash);
 
-    // Convert the string representation of the random number to uppercase
+    // Convert the string representation of the shortcut name hash number to uppercase
     for (i = 0; i < HASH_LENGTH; i++)
         wszShortcutNameHash[i] = towupper(wszShortcutNameHash[i]);
 
-    // Create the actual XLAST file content from the shortcut name and the random number and write it to wszFileContent
+    // Create the actual XLAST file content from the shortcut name and the shortcut name hash and write it to wszFileContent
     _snwprintf_s(
         wszFileContent,
         FILE_CONTENT_MAX_LENGTH,
@@ -230,7 +230,7 @@ HRESULT GetExecDir(char *szExecDir, size_t nMaxLength)
     return S_OK;
 }
 
-HRESULT GetShortcutName(char *szShortcutName, uint32_t nMaxLength)
+HRESULT GetShortcutName(char *szShortcutName, size_t nMaxLength)
 {
     HRESULT hr = S_OK;
     FILE *pConfigFile = NULL;

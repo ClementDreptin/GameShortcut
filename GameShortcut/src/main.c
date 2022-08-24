@@ -17,7 +17,7 @@ HRESULT ObCreateSymbolicLink(STRING *pLinkName, STRING *pDevicePath);
 
 // Allow the game to access the entire hard drive.
 // The system only allows executables to access the directory they live in and binds it to
-// the "game:" drive. Everything else if not accessible unless you create a symbolic link.
+// the "game:" drive. Nothing else is accessible unless you create a symbolic link.
 static HRESULT MountHdd()
 {
     STRING DeviceName = { 0 };
@@ -34,7 +34,7 @@ static HRESULT MountHdd()
 }
 
 // Read the path to the executable from the config file and write it to szGamePath.
-static HRESULT GetGamePath(char *szGamePath, uint32_t nMaxLength)
+static HRESULT GetGamePath(char *szGamePath, size_t nMaxLength)
 {
     HRESULT hr = S_OK;
     size_t i = 0;
@@ -88,11 +88,11 @@ static HRESULT ShowMessageBoxError(const char *szMessage)
     if (dwResult != ERROR_IO_PENDING)
         return E_FAIL;
 
-    // Wait until the user closes the dialog
+    // Wait until the user closes the message box
     while (!XHasOverlappedIoCompleted(&Overlapped))
         Sleep(100);
 
-    // Get how the user closed the dialog (by clicking "OK", "Cancel" or the Xbox button on the controller)
+    // Get how the user closed the message box (by clicking "OK", "Cancel" or the Xbox button on the controller)
     dwResult = XGetOverlappedResult(&Overlapped, NULL, TRUE);
 
     if (dwResult == ERROR_ACCESS_DENIED)
