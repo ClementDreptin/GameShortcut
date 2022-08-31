@@ -25,7 +25,6 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Xbox 360'">
-    <RemoteRoot>hdd:\Games\$(ProjectName)</RemoteRoot>
     <OutDir>$(SolutionDir)build\bin\</OutDir>
     <IntDir>$(SolutionDir)build\obj\</IntDir>
     <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -55,10 +54,6 @@
       <ProgramDatabaseFile>$(IntDir)$(ProjectName)\$(ProjectName).pdb</ProgramDatabaseFile>
       <SetChecksum>true</SetChecksum>
     </Link>
-    <Deploy>
-      <DeploymentType>CopyToHardDrive</DeploymentType>
-      <DeploymentFiles>$(RemoteRoot)=$(ImagePath);$(RemoteRoot)\config=$(OutDir)config</DeploymentFiles>
-    </Deploy>
     <PostBuildEvent>
       <Command>del $(OutDir)$(TargetName)$(TargetExt)</Command>
     </PostBuildEvent>
