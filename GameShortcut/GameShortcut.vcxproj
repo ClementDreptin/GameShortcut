@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Release|Xbox 360">
@@ -25,7 +25,6 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Xbox 360'">
-    <RemoteRoot>hdd:\Games\$(ProjectName)</RemoteRoot>
     <OutDir>$(SolutionDir)build\bin\</OutDir>
     <IntDir>$(SolutionDir)build\obj\</IntDir>
     <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -46,6 +45,7 @@
       <PreprocessorDefinitions>NDEBUG;_XBOX</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
       <ObjectFileName>$(IntDir)$(ProjectName)\%(RelativeDir)</ObjectFileName>
+      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -54,10 +54,6 @@
       <ProgramDatabaseFile>$(IntDir)$(ProjectName)\$(ProjectName).pdb</ProgramDatabaseFile>
       <SetChecksum>true</SetChecksum>
     </Link>
-    <Deploy>
-      <DeploymentType>CopyToHardDrive</DeploymentType>
-      <DeploymentFiles>$(RemoteRoot)=$(ImagePath);$(RemoteRoot)\config=$(OutDir)config</DeploymentFiles>
-    </Deploy>
     <PostBuildEvent>
       <Command>del $(OutDir)$(TargetName)$(TargetExt)</Command>
     </PostBuildEvent>
@@ -66,10 +62,10 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\main.c" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="config\gameInfo.txt">
+    <CustomBuild Include="config\shortcutInfo.txt">
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Xbox 360'">copy "%(FullPath)" "$(OutDir)config\%(Filename)%(Extension)"</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Xbox 360'">Copy config file %(FullPath)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Xbox 360'">$(OutDir)config\%(Filename)%(Extension)</Outputs>

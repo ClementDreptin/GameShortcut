@@ -43,6 +43,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <ObjectFileName>$(IntDir)$(ProjectName)\%(RelativeDir)</ObjectFileName>
       <AdditionalIncludeDirectories>$(XEDK)\include\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -51,18 +52,16 @@
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <ProgramDatabaseFile>$(IntDir)$(ProjectName)\$(ProjectName).pdb</ProgramDatabaseFile>
-      <AdditionalDependencies>xbdm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>xbdm.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(XEDK)\lib\win32\vs2010;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\main.c" />
+    <ClCompile Include="src\Utils.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\IO.h" />
-    <ClInclude Include="src\Log.h" />
     <ClInclude Include="src\Utils.h" />
-    <ClInclude Include="src\XLAST.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="resources\icon.png">
