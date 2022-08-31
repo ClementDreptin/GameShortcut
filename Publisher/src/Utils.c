@@ -14,7 +14,9 @@
 
 #define FILE_CONTENT_MAX_LENGTH 2048
 #define ERROR_LENGTH 200
-#define HASH_LENGTH sizeof(uint32_t) + 1
+
+// Each bytes is represented as 2 characters in hex and we need an extra character to null-terminate the string
+#define HASH_LENGTH ((sizeof(uint32_t) * 2) + 1)
 
 HRESULT BuildXLASTFile(const char *szShortcutName)
 {
@@ -81,7 +83,7 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
     mbstowcs_s(NULL, wszShortcutName, SHORCUT_NAME_LENGTH, szShortcutName, _TRUNCATE);
 
     // Write the string representation of the shortcut name hash in wszShortcutNameHash
-    _snwprintf_s(wszShortcutNameHash, HASH_LENGTH, HASH_LENGTH, L"%08x", nShortcutNameHash);
+    _snwprintf_s(wszShortcutNameHash, HASH_LENGTH, _TRUNCATE, L"%08x", nShortcutNameHash);
 
     // Convert the string representation of the shortcut name hash number to uppercase
     for (i = 0; i < HASH_LENGTH; i++)
@@ -91,7 +93,7 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
     _snwprintf_s(
         wszFileContent,
         FILE_CONTENT_MAX_LENGTH,
-        FILE_CONTENT_MAX_LENGTH,
+        _TRUNCATE,
         wszFileContentFormat,
         wszShortcutName,
         wszShortcutNameHash,
@@ -116,11 +118,11 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
         return E_FAIL;
     }
 
-    // Write the XLAST file content to the actual file on disk and get the amount of characters written
-    nWCharWritten = fwrite(wszFileContent, sizeof(wchar_t), nWCharToWrite, pFile);
-
     // Get the amount of characters that are supposed to be written
     nWCharToWrite = wcsnlen_s(wszFileContent, FILE_CONTENT_MAX_LENGTH);
+
+    // Write the XLAST file content to the actual file on disk and get the amount of characters written
+    nWCharWritten = fwrite(wszFileContent, sizeof(wchar_t), nWCharToWrite, pFile);
 
     // Make sure all characters from the XLAST file content were written to disk
     if (nWCharWritten != nWCharToWrite)
@@ -237,7 +239,7 @@ HRESULT GetShortcutName(char *szShortcutName, size_t nMaxLength)
     char szConfigFilePath[MAX_PATH] = { 0 };
     size_t nShortcutNameSize = 0;
 
-    if (szShortcutName != NULL)
+    if (szShortcutName == NULL)
     {
         fputs("szShortcutName is NULL\n", stderr);
         return E_FAIL;
