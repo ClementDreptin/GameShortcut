@@ -51,7 +51,7 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
 
     if (szShortcutName == NULL)
     {
-        fputs("szShortcutName is NULL", stderr);
+        fputs("szShortcutName is NULL\n", stderr);
         return E_FAIL;
     }
 
@@ -59,7 +59,7 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
     wszFileContent = (wchar_t *)malloc(FILE_CONTENT_MAX_LENGTH * sizeof(wchar_t));
     if (wszFileContent == NULL)
     {
-        fputs("Allocating memory for XLAST file content failed", stderr);
+        fputs("Allocating memory for XLAST file content failed\n", stderr);
         return E_FAIL;
     }
 
@@ -73,7 +73,7 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
 
     if (FAILED(hr))
     {
-        fputs("Could not hash to shortcut name", stderr);
+        fputs("Could not hash to shortcut name\n", stderr);
         return E_FAIL;
     }
 
@@ -151,7 +151,7 @@ HRESULT ExecBLAST(const char *szXDKDirPath)
 
     if (szXDKDirPath == NULL)
     {
-        fputs("szXDKDirPath is NULL", stderr);
+        fputs("szXDKDirPath is NULL\n", stderr);
         return E_FAIL;
     }
 
@@ -209,7 +209,7 @@ HRESULT GetExecDir(char *szExecDir, size_t nMaxLength)
 
     if (szExecDir == NULL)
     {
-        fputs("szExecDir is NULL", stderr);
+        fputs("szExecDir is NULL\n", stderr);
         return E_FAIL;
     }
 
@@ -239,14 +239,14 @@ HRESULT GetShortcutName(char *szShortcutName, size_t nMaxLength)
 
     if (szShortcutName != NULL)
     {
-        fputs("szShortcutName is NULL", stderr);
+        fputs("szShortcutName is NULL\n", stderr);
         return E_FAIL;
     }
 
     hr = GetExecDir(szConfigFilePath, MAX_PATH);
     if (FAILED(hr))
     {
-        fputs("Failed to read execution directory", stderr);
+        fputs("Failed to read execution directory\n", stderr);
         return hr;
     }
 
@@ -288,7 +288,7 @@ HRESULT CheckXBDMConnection(void)
     // Get the name of the default Xbox 360 set up in Neighborhood
     hr = DmGetNameOfXbox(szXboxName, &dwXboxNameSize, TRUE);
     if (FAILED(hr))
-        fputs("Could not connect to console", stderr);
+        fputs("Could not connect to console\n", stderr);
 
     return hr;
 }
@@ -307,7 +307,7 @@ static HRESULT DeleteDirectory(const char *szDirPath)
 
     if (szDirPath == NULL)
     {
-        fputs("szDirPath is NULL", stderr);
+        fputs("szDirPath is NULL\n", stderr);
         return E_FAIL;
     }
 
