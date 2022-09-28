@@ -18,23 +18,23 @@
 // Each bytes is represented as 2 characters in hex and we need an extra character to null-terminate the string
 #define HASH_LENGTH ((sizeof(uint32_t) * 2) + 1)
 
-HRESULT BuildXLASTFile(const char *szShortcutName)
+HRESULT BuildXLASTFile(const char *shortcutName)
 {
     HRESULT hr = S_OK;
 
-    char szFilePath[MAX_PATH] = { 0 };
-    wchar_t wszShortcutName[SHORCUT_NAME_LENGTH] = { 0 };
+    char filePath[MAX_PATH] = { 0 };
+    wchar_t wideShortcutName[SHORCUT_NAME_LENGTH] = { 0 };
 
-    uint32_t nShortcutNameHash = 0;
-    wchar_t wszShortcutNameHash[HASH_LENGTH] = { 0 };
+    uint32_t shortcutNameHash = 0;
+    wchar_t shortcutNameHashAsWideString[HASH_LENGTH] = { 0 };
 
     size_t i = 0;
 
-    size_t nWCharToWrite = 0;
-    size_t nWCharWritten = 0;
+    size_t numberOfWideCharToWrite = 0;
+    size_t numberOfWideCharWritten = 0;
     FILE *pFile = NULL;
-    wchar_t *wszFileContent = NULL;
-    const wchar_t *wszFileContentFormat =
+    wchar_t *fileContent = NULL;
+    const wchar_t *fileContentFormat =
         L"<?xml version=\"1.0\" encoding=\"UTF-16\" standalone=\"no\"?>\n"
         L"<XboxLiveSubmissionProject Version=\"2.0.21256.0\">\n"
         L"    <ContentProject clsid=\"{AED6156D-A870-4FF7-924F-F375495A222A}\" Name=\"%s\" TitleID=\"%s\" TitleName=\"%s\" ActivationDate=\"10/26/2021\" PubOfferingID=\"FFFFFFF\" PubBitFlags=\"FFFFFFFF\" HasCost=\"false\" IsMarketplace=\"true\" AllowProfileTransfer=\"true\" AllowDeviceTransfer=\"true\" DashIconPath=\".\\resources\\icon.png\" TitleIconPath=\".\\resources\\icon.png\" ContentType=\"0x00080000\">\n"
@@ -51,15 +51,15 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
         L"    </ContentProject>\n"
         L"</XboxLiveSubmissionProject>";
 
-    if (szShortcutName == NULL)
+    if (shortcutName == NULL)
     {
-        fputs("szShortcutName is NULL\n", stderr);
+        fputs("shortcutName is NULL\n", stderr);
         return E_FAIL;
     }
 
     // Allocate enough memory on the heap to hold the XLAST file content
-    wszFileContent = (wchar_t *)malloc(FILE_CONTENT_MAX_LENGTH * sizeof(wchar_t));
-    if (wszFileContent == NULL)
+    fileContent = (wchar_t *)malloc(FILE_CONTENT_MAX_LENGTH * sizeof(wchar_t));
+    if (fileContent == NULL)
     {
         fputs("Allocating memory for XLAST file content failed\n", stderr);
         return E_FAIL;
@@ -67,9 +67,9 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
 
     // Create a hash from the shortcut name and use it has title ID for the shortcut
     hr = HashData(
-        (uint8_t *)szShortcutName,
-        (uint32_t)strnlen_s(szShortcutName, SHORCUT_NAME_LENGTH),
-        (uint8_t *)&nShortcutNameHash,
+        (uint8_t *)shortcutName,
+        (uint32_t)strnlen_s(shortcutName, SHORCUT_NAME_LENGTH),
+        (uint8_t *)&shortcutNameHash,
         sizeof(uint32_t)
     );
 
@@ -79,123 +79,123 @@ HRESULT BuildXLASTFile(const char *szShortcutName)
         return E_FAIL;
     }
 
-    // Convert szShortcutName, which is a narrow string, to a wide string
-    mbstowcs_s(NULL, wszShortcutName, SHORCUT_NAME_LENGTH, szShortcutName, _TRUNCATE);
+    // Convert shortcutName, which is a narrow string, to a wide string
+    mbstowcs_s(NULL, wideShortcutName, SHORCUT_NAME_LENGTH, shortcutName, _TRUNCATE);
 
-    // Write the string representation of the shortcut name hash in wszShortcutNameHash
-    _snwprintf_s(wszShortcutNameHash, HASH_LENGTH, _TRUNCATE, L"%08x", nShortcutNameHash);
+    // Write the string representation of the shortcut name hash in shortcutNameHashAsWideString
+    _snwprintf_s(shortcutNameHashAsWideString, HASH_LENGTH, _TRUNCATE, L"%08x", shortcutNameHash);
 
     // Convert the string representation of the shortcut name hash number to uppercase
     for (i = 0; i < HASH_LENGTH; i++)
-        wszShortcutNameHash[i] = towupper(wszShortcutNameHash[i]);
+        shortcutNameHashAsWideString[i] = towupper(shortcutNameHashAsWideString[i]);
 
-    // Create the actual XLAST file content from the shortcut name and the shortcut name hash and write it to wszFileContent
+    // Create the actual XLAST file content from the shortcut name and the shortcut name hash and write it to fileContent
     _snwprintf_s(
-        wszFileContent,
+        fileContent,
         FILE_CONTENT_MAX_LENGTH,
         _TRUNCATE,
-        wszFileContentFormat,
-        wszShortcutName,
-        wszShortcutNameHash,
-        wszShortcutName,
-        wszShortcutName,
-        wszShortcutName
+        fileContentFormat,
+        wideShortcutName,
+        shortcutNameHashAsWideString,
+        wideShortcutName,
+        wideShortcutName,
+        wideShortcutName
     );
 
-    // Read the executable directory path and write it to szFilePath
-    hr = GetExecDir(szFilePath, MAX_PATH);
+    // Read the executable directory path and write it to filePath
+    hr = GetExecDir(filePath, MAX_PATH);
     if (FAILED(hr))
         return E_FAIL;
 
     // Append the XLAST file name to the executable directory path to get the absolute path to the XLAST file
-    strncat_s(szFilePath, MAX_PATH, "\\tmp.xlast", _TRUNCATE);
+    strncat_s(filePath, MAX_PATH, "\\tmp.xlast", _TRUNCATE);
 
     // Open the XLAST file in write mode and create it if it doesn't exist (which should always be the case)
-    fopen_s(&pFile, szFilePath, "w+, ccs=UTF-16LE");
+    fopen_s(&pFile, filePath, "w+, ccs=UTF-16LE");
     if (pFile == NULL)
     {
-        fprintf_s(stderr, "Could not open XLAST file at location %s\n", szFilePath);
+        fprintf_s(stderr, "Could not open XLAST file at location %s\n", filePath);
         return E_FAIL;
     }
 
     // Get the amount of characters that are supposed to be written
-    nWCharToWrite = wcsnlen_s(wszFileContent, FILE_CONTENT_MAX_LENGTH);
+    numberOfWideCharToWrite = wcsnlen_s(fileContent, FILE_CONTENT_MAX_LENGTH);
 
     // Write the XLAST file content to the actual file on disk and get the amount of characters written
-    nWCharWritten = fwrite(wszFileContent, sizeof(wchar_t), nWCharToWrite, pFile);
+    numberOfWideCharWritten = fwrite(fileContent, sizeof(wchar_t), numberOfWideCharToWrite, pFile);
 
     // Make sure all characters from the XLAST file content were written to disk
-    if (nWCharWritten != nWCharToWrite)
+    if (numberOfWideCharWritten != numberOfWideCharToWrite)
     {
-        fprintf_s(stderr, "Could not write XLAST file, was expecting to write %llu characters but wrote %llu\n", nWCharToWrite, nWCharWritten);
+        fprintf_s(stderr, "Could not write XLAST file, was expecting to write %llu characters but wrote %llu\n", numberOfWideCharToWrite, numberOfWideCharWritten);
         fclose(pFile);
         return E_FAIL;
     }
 
     // Close the XLAST file and free the buffer that was holding its content
     fclose(pFile);
-    free(wszFileContent);
+    free(fileContent);
 
-    wprintf_s(L"XLAST file successfully generated (ID: %s)\n", wszShortcutNameHash);
+    wprintf_s(L"XLAST file successfully generated (ID: %s)\n", shortcutNameHashAsWideString);
 
     return S_OK;
 }
 
-HRESULT ExecBLAST(const char *szXDKDirPath)
+HRESULT ExecBLAST(const char *xdkDirPath)
 {
     HRESULT hr = S_OK;
 
-    char szExecDirBuffer[MAX_PATH] = { 0 };
-    char szBLASTParameters[MAX_PATH] = { 0 };
-    char szBLASTPath[MAX_PATH] = { 0 };
+    char execDirBuffer[MAX_PATH] = { 0 };
+    char BLASTParameters[MAX_PATH] = { 0 };
+    char BLASTPath[MAX_PATH] = { 0 };
 
-    SHELLEXECUTEINFO ShellExecInfo = { 0 };
+    SHELLEXECUTEINFO shellExecInfo = { 0 };
 
-    if (szXDKDirPath == NULL)
+    if (xdkDirPath == NULL)
     {
-        fputs("szXDKDirPath is NULL\n", stderr);
+        fputs("xdkDirPath is NULL\n", stderr);
         return E_FAIL;
     }
 
-    // Read the executable directory path and write it to szExecDirBuffer
-    hr = GetExecDir(szExecDirBuffer, MAX_PATH);
+    // Read the executable directory path and write it to execDirBuffer
+    hr = GetExecDir(execDirBuffer, MAX_PATH);
     if (FAILED(hr))
         return E_FAIL;
 
     // Create the full list of parameters to pass to BLAST
-    strncpy_s(szBLASTParameters, MAX_PATH, szExecDirBuffer, _TRUNCATE);
-    strncat_s(szBLASTParameters, MAX_PATH, "\\tmp.xlast /build /install:Local /nologo", _TRUNCATE);
+    strncpy_s(BLASTParameters, MAX_PATH, execDirBuffer, _TRUNCATE);
+    strncat_s(BLASTParameters, MAX_PATH, "\\tmp.xlast /build /install:Local /nologo", _TRUNCATE);
 
     // Create the absolute path to the BLAST executable
-    strncpy_s(szBLASTPath, MAX_PATH, szXDKDirPath, _TRUNCATE);
-    strncat_s(szBLASTPath, MAX_PATH, "\\bin\\win32\\blast.exe", _TRUNCATE);
+    strncpy_s(BLASTPath, MAX_PATH, xdkDirPath, _TRUNCATE);
+    strncat_s(BLASTPath, MAX_PATH, "\\bin\\win32\\blast.exe", _TRUNCATE);
 
     // Populate the SHELLEXECUTEINFO struct
-    ShellExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
-    ShellExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_NOASYNC | SEE_MASK_NO_CONSOLE;
-    ShellExecInfo.hwnd = NULL;
-    ShellExecInfo.lpVerb = NULL;
-    ShellExecInfo.lpFile = szBLASTPath;
-    ShellExecInfo.lpParameters = szBLASTParameters;
-    ShellExecInfo.lpDirectory = szExecDirBuffer;
-    ShellExecInfo.nShow = SW_SHOW;
-    ShellExecInfo.hInstApp = NULL;
+    shellExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+    shellExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_NOASYNC | SEE_MASK_NO_CONSOLE;
+    shellExecInfo.hwnd = NULL;
+    shellExecInfo.lpVerb = NULL;
+    shellExecInfo.lpFile = BLASTPath;
+    shellExecInfo.lpParameters = BLASTParameters;
+    shellExecInfo.lpDirectory = execDirBuffer;
+    shellExecInfo.nShow = SW_SHOW;
+    shellExecInfo.hInstApp = NULL;
 
     // Execute the command
-    ShellExecuteEx(&ShellExecInfo);
+    ShellExecuteEx(&shellExecInfo);
 
     // Wait for the command's process to complete
-    WaitForSingleObject(ShellExecInfo.hProcess, INFINITE);
-    CloseHandle(ShellExecInfo.hProcess);
+    WaitForSingleObject(shellExecInfo.hProcess, INFINITE);
+    CloseHandle(shellExecInfo.hProcess);
 
     // Get the status code returned by the BLAST process and check if it returned an error
-    if ((int)ShellExecInfo.hInstApp <= 32)
+    if ((int)shellExecInfo.hInstApp <= 32)
     {
-        DWORD dwError = GetLastError();
-        char szErrorMsg[ERROR_LENGTH] = { 0 };
-        strerror_s(szErrorMsg, ERROR_LENGTH, dwError);
+        uint32_t error = GetLastError();
+        char errorMsg[ERROR_LENGTH] = { 0 };
+        strerror_s(errorMsg, ERROR_LENGTH, error);
 
-        fputs(szErrorMsg, stderr);
+        fputs(errorMsg, stderr);
 
         return E_FAIL;
     }
@@ -203,49 +203,49 @@ HRESULT ExecBLAST(const char *szXDKDirPath)
     return S_OK;
 }
 
-HRESULT GetExecDir(char *szExecDir, size_t nMaxLength)
+HRESULT GetExecDir(char *execDir, size_t maxLength)
 {
-    char szPath[MAX_PATH] = { 0 };
-    char *szLastBackslash = NULL;
-    size_t nExecDirPathLength = 0;
+    char path[MAX_PATH] = { 0 };
+    char *lastBackslash = NULL;
+    size_t execDirPathLength = 0;
 
-    if (szExecDir == NULL)
+    if (execDir == NULL)
     {
-        fputs("szExecDir is NULL\n", stderr);
+        fputs("execDir is NULL\n", stderr);
         return E_FAIL;
     }
 
     // Get the absolute path to the Publisher executable
-    GetModuleFileName(NULL, szPath, MAX_PATH);
+    GetModuleFileName(NULL, path, MAX_PATH);
 
     // Get a pointer to the last backslash in the path
-    szLastBackslash = strrchr(szPath, '\\');
+    lastBackslash = strrchr(path, '\\');
 
     // It should not happen but just in case no blackslashes were found, return
-    if (szLastBackslash == NULL)
+    if (lastBackslash == NULL)
         return E_FAIL;
 
-    // Copy szPath into szExecDir but only up until the last backslash
-    nExecDirPathLength = strnlen_s(szPath, MAX_PATH) - strnlen_s(szLastBackslash, MAX_PATH);
-    strncpy_s(szExecDir, nMaxLength, szPath, nExecDirPathLength);
+    // Copy path into execDir but only up until the last backslash
+    execDirPathLength = strnlen_s(path, MAX_PATH) - strnlen_s(lastBackslash, MAX_PATH);
+    strncpy_s(execDir, maxLength, path, execDirPathLength);
 
     return S_OK;
 }
 
-HRESULT GetShortcutName(char *szShortcutName, size_t nMaxLength)
+HRESULT GetShortcutName(char *shortcutName, size_t maxLength)
 {
     HRESULT hr = S_OK;
     FILE *pConfigFile = NULL;
-    char szConfigFilePath[MAX_PATH] = { 0 };
-    size_t nShortcutNameSize = 0;
+    char configFilePath[MAX_PATH] = { 0 };
+    size_t shortcutNameSize = 0;
 
-    if (szShortcutName == NULL)
+    if (shortcutName == NULL)
     {
-        fputs("szShortcutName is NULL\n", stderr);
+        fputs("shortcutName is NULL\n", stderr);
         return E_FAIL;
     }
 
-    hr = GetExecDir(szConfigFilePath, MAX_PATH);
+    hr = GetExecDir(configFilePath, MAX_PATH);
     if (FAILED(hr))
     {
         fputs("Failed to read execution directory\n", stderr);
@@ -254,27 +254,27 @@ HRESULT GetShortcutName(char *szShortcutName, size_t nMaxLength)
 
     // Append the path to the config file to the executable directory to get the
     // absolute path to the config file
-    strncat_s(szConfigFilePath, MAX_PATH, "\\config\\shortcutInfo.txt", _TRUNCATE);
+    strncat_s(configFilePath, MAX_PATH, "\\config\\shortcutInfo.txt", _TRUNCATE);
 
     // Open the config file in read-only mode
-    if (fopen_s(&pConfigFile, szConfigFilePath, "r") != 0)
+    if (fopen_s(&pConfigFile, configFilePath, "r") != 0)
     {
-        fprintf_s(stderr, "Failed to open config file at location %s\n", szConfigFilePath);
+        fprintf_s(stderr, "Failed to open config file at location %s\n", configFilePath);
         return E_FAIL;
     }
 
-    // Read the first line of the config file, which contains the shortcut name, into szShortcutName
-    if (fgets(szShortcutName, (int)nMaxLength, pConfigFile) == NULL)
+    // Read the first line of the config file, which contains the shortcut name, into shortcutName
+    if (fgets(shortcutName, (int)maxLength, pConfigFile) == NULL)
     {
-        fprintf_s(stderr, "Failed to read from config file at location %s\n", szConfigFilePath);
+        fprintf_s(stderr, "Failed to read from config file at location %s\n", configFilePath);
         fclose(pConfigFile);
         return E_FAIL;
     }
 
-    nShortcutNameSize = strnlen_s(szShortcutName, nMaxLength);
+    shortcutNameSize = strnlen_s(shortcutName, maxLength);
 
     // Remove the new line character at the end of the line
-    szShortcutName[nShortcutNameSize - 1] = '\0';
+    shortcutName[shortcutNameSize - 1] = '\0';
 
     fclose(pConfigFile);
 
@@ -284,11 +284,11 @@ HRESULT GetShortcutName(char *szShortcutName, size_t nMaxLength)
 HRESULT CheckXBDMConnection(void)
 {
     HRESULT hr = S_OK;
-    DWORD dwXboxNameSize = MAX_PATH;
-    char szXboxName[MAX_PATH];
+    size_t xboxNameSize = MAX_PATH;
+    char xboxName[MAX_PATH];
 
     // Get the name of the default Xbox 360 set up in Neighborhood
-    hr = DmGetNameOfXbox(szXboxName, &dwXboxNameSize, TRUE);
+    hr = DmGetNameOfXbox(xboxName, (DWORD *)&xboxNameSize, TRUE);
     if (FAILED(hr))
         fputs("Could not connect to console\n", stderr);
 
@@ -296,80 +296,80 @@ HRESULT CheckXBDMConnection(void)
 }
 
 // Delete a directory and all of its files/subdirectories.
-static HRESULT DeleteDirectory(const char *szDirPath)
+static HRESULT DeleteDirectory(const char *dirPath)
 {
     HRESULT hr = S_OK;
-    BOOL bResult = FALSE;
-    DWORD dwError = 0;
+    BOOL result = FALSE;
+    uint32_t error = 0;
 
-    char szPattern[MAX_PATH] = { 0 };
+    char pattern[MAX_PATH] = { 0 };
 
-    WIN32_FIND_DATA FileInfo = { 0 };
-    HANDLE hFile = INVALID_HANDLE_VALUE;
+    WIN32_FIND_DATA fileInfo = { 0 };
+    HANDLE fileHandle = INVALID_HANDLE_VALUE;
 
-    if (szDirPath == NULL)
+    if (dirPath == NULL)
     {
-        fputs("szDirPath is NULL\n", stderr);
+        fputs("dirPath is NULL\n", stderr);
         return E_FAIL;
     }
 
     // Create the pattern to start searching the files
-    strncpy_s(szPattern, MAX_PATH, szDirPath, _TRUNCATE);
-    strncat_s(szPattern, MAX_PATH, "\\*.*", _TRUNCATE);
+    strncpy_s(pattern, MAX_PATH, dirPath, _TRUNCATE);
+    strncat_s(pattern, MAX_PATH, "\\*.*", _TRUNCATE);
 
     // Find the first file corresponding to the pattern
-    hFile = FindFirstFile(szPattern, &FileInfo);
-    if (hFile == INVALID_HANDLE_VALUE)
+    fileHandle = FindFirstFile(pattern, &fileInfo);
+    if (fileHandle == INVALID_HANDLE_VALUE)
     {
-        fprintf_s(stderr, "Could not find file at location %s\n", szDirPath);
+        fprintf_s(stderr, "Could not find file at location %s\n", dirPath);
         return E_FAIL;
     }
 
     // Loop as long as there are files in the directory
-    while (FindNextFile(hFile, &FileInfo))
+    while (FindNextFile(fileHandle, &fileInfo))
     {
-        char szFilePath[MAX_PATH] = { 0 };
+        char filePath[MAX_PATH] = { 0 };
 
         // Don't try to get "." (current directory) or ".." (parent directory)
-        if (!strcmp(FileInfo.cFileName, ".") || !strcmp(FileInfo.cFileName, ".."))
+        if (!strcmp(fileInfo.cFileName, ".") || !strcmp(fileInfo.cFileName, ".."))
             continue;
 
         // Create the full path to the current file to delete
-        strncpy_s(szFilePath, MAX_PATH, szDirPath, _TRUNCATE);
-        strncat_s(szFilePath, MAX_PATH, "\\", _TRUNCATE);
-        strncat_s(szFilePath, MAX_PATH, FileInfo.cFileName, _TRUNCATE);
+        strncpy_s(filePath, MAX_PATH, dirPath, _TRUNCATE);
+        strncat_s(filePath, MAX_PATH, "\\", _TRUNCATE);
+        strncat_s(filePath, MAX_PATH, fileInfo.cFileName, _TRUNCATE);
 
         // If the current file is a directory, start the recursion
-        if (FileInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        if (fileInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
         {
-            hr = DeleteDirectory(szFilePath);
+            hr = DeleteDirectory(filePath);
             if (FAILED(hr))
                 return E_FAIL;
         }
         else
         {
             // Delete the file
-            bResult = DeleteFile(szFilePath);
-            if (!bResult)
+            result = DeleteFile(filePath);
+            if (!result)
             {
-                fprintf_s(stderr, "Could not delete %s\n", szFilePath);
+                fprintf_s(stderr, "Could not delete %s\n", filePath);
                 return E_FAIL;
             }
         }
     }
 
-    FindClose(hFile);
+    FindClose(fileHandle);
 
     // Check for errors
-    dwError = GetLastError();
-    if (dwError != ERROR_NO_MORE_FILES)
+    error = GetLastError();
+    if (error != ERROR_NO_MORE_FILES)
         return E_FAIL;
 
     // Remove the directory once it's empty
-    bResult = RemoveDirectory(szDirPath);
-    if (!bResult)
+    result = RemoveDirectory(dirPath);
+    if (!result)
     {
-        fprintf_s(stderr, "Could not delete %s\n", szDirPath);
+        fprintf_s(stderr, "Could not delete %s\n", dirPath);
         return E_FAIL;
     }
 
@@ -379,22 +379,22 @@ static HRESULT DeleteDirectory(const char *szDirPath)
 void Cleanup(void)
 {
     HRESULT hr = S_OK;
-    char szPathToOnlineDir[MAX_PATH] = { 0 };
-    char szPathToXLASTFile[MAX_PATH] = { 0 };
+    char pathToOnlineDir[MAX_PATH] = { 0 };
+    char pathToXLASTFile[MAX_PATH] = { 0 };
 
-    // Read the executable directory path and write it to szPathToOnlineDir
-    hr = GetExecDir(szPathToOnlineDir, MAX_PATH);
+    // Read the executable directory path and write it to pathToOnlineDir
+    hr = GetExecDir(pathToOnlineDir, MAX_PATH);
     if (FAILED(hr))
         return;
 
-    // Copy the executable directory path (which lives in szPathToOnlineDir) into szPathToXLASTFile
-    strncpy_s(szPathToXLASTFile, MAX_PATH, szPathToOnlineDir, _TRUNCATE);
+    // Copy the executable directory path (which lives in pathToOnlineDir) into pathToXLASTFile
+    strncpy_s(pathToXLASTFile, MAX_PATH, pathToOnlineDir, _TRUNCATE);
 
     // Finish the paths to the XLAST file and Online directory
-    strncat_s(szPathToXLASTFile, MAX_PATH, "\\tmp.xlast", _TRUNCATE);
-    strncat_s(szPathToOnlineDir, MAX_PATH, "\\Online", _TRUNCATE);
+    strncat_s(pathToXLASTFile, MAX_PATH, "\\tmp.xlast", _TRUNCATE);
+    strncat_s(pathToOnlineDir, MAX_PATH, "\\Online", _TRUNCATE);
 
     // Delete the Online directory and the XLAST file
-    DeleteDirectory(szPathToOnlineDir);
-    DeleteFile(szPathToXLASTFile);
+    DeleteDirectory(pathToOnlineDir);
+    DeleteFile(pathToXLASTFile);
 }

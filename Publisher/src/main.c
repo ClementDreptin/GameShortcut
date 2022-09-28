@@ -5,12 +5,12 @@ int main()
     HRESULT hr = S_OK;
     errno_t err = 0;
 
-    char *szXDKDirPath = NULL;
-    size_t nXDKDirPathSize = 0;
-    char szShortcutName[SHORCUT_NAME_LENGTH] = { 0 };
+    char *xdkDirPath = NULL;
+    size_t xdkDirPathSize = 0;
+    char shortcutName[SHORCUT_NAME_LENGTH] = { 0 };
 
-    err = _dupenv_s(&szXDKDirPath, &nXDKDirPathSize, "xedk");
-    if (szXDKDirPath == NULL || err != 0)
+    err = _dupenv_s(&xdkDirPath, &xdkDirPathSize, "xedk");
+    if (xdkDirPath == NULL || err != 0)
     {
         system("pause");
         return EXIT_FAILURE;
@@ -23,21 +23,21 @@ int main()
         return EXIT_FAILURE;
     }
 
-    hr = GetShortcutName(szShortcutName, SHORCUT_NAME_LENGTH);
+    hr = GetShortcutName(shortcutName, SHORCUT_NAME_LENGTH);
     if (FAILED(hr))
     {
         system("pause");
         return EXIT_FAILURE;
     }
 
-    hr = BuildXLASTFile(szShortcutName);
+    hr = BuildXLASTFile(shortcutName);
     if (FAILED(hr))
     {
         system("pause");
         return EXIT_FAILURE;
     }
 
-    hr = ExecBLAST(szXDKDirPath);
+    hr = ExecBLAST(xdkDirPath);
     if (FAILED(hr))
     {
         Cleanup();

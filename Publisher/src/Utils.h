@@ -6,16 +6,16 @@
 #define SHORCUT_NAME_LENGTH 50
 
 // Create the XML config file XLAST uses to build the shortcut.
-HRESULT BuildXLASTFile(const char *szShortcutName);
+HRESULT BuildXLASTFile(const char *shortcutName);
 
 // Run BLAST in a separate process.
-HRESULT ExecBLAST(const char *szXDKDirPath);
+HRESULT ExecBLAST(const char *xdkDirPath);
 
-// Get the path of the directory the Publisher executable lives in and write it to szShortcutName.
-HRESULT GetExecDir(char *szExecDir, size_t nMaxLength);
+// Get the path of the directory the Publisher executable lives in and write it to execDir.
+HRESULT GetExecDir(char *execDir, size_t maxLength);
 
-// Read the name of the shortcut from the config file and write it to szShortcutName.
-HRESULT GetShortcutName(char *szShortcutName, size_t nMaxLength);
+// Read the name of the shortcut from the config file and write it to shortcutName.
+HRESULT GetShortcutName(char *shortcutName, size_t maxLength);
 
 // Make sure an XBDM connection is properly set up.
 HRESULT CheckXBDMConnection(void);

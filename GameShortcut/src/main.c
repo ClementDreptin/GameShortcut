@@ -7,12 +7,12 @@
 // Structs and function prototypes from xboxkrnl.exe
 typedef struct _STRING
 {
-    uint16_t wLength;
-    uint16_t wMaxLength;
-    char *szBuffer;
+    uint16_t Length;
+    uint16_t MaxLength;
+    char *Buffer;
 } STRING;
 
-void RtlInitAnsiString(STRING *pDestinationString, const char *szSourceString);
+void RtlInitAnsiString(STRING *pDestinationString, const char *sourceString);
 HRESULT ObCreateSymbolicLink(STRING *pLinkName, STRING *pDevicePath);
 
 // Allow the game to access the entire hard drive.
@@ -20,40 +20,40 @@ HRESULT ObCreateSymbolicLink(STRING *pLinkName, STRING *pDevicePath);
 // the "game:" drive. Nothing else is accessible unless you create a symbolic link.
 static HRESULT MountHdd()
 {
-    STRING DeviceName = { 0 };
-    STRING LinkName = { 0 };
-    const char *szDestinationDrive = "\\??\\hdd:";
-    const char *szHddDevicePath = "\\Device\\Harddisk0\\Partition1\\";
+    STRING deviceName = { 0 };
+    STRING linkName = { 0 };
+    const char *destinationDrive = "\\??\\hdd:";
+    const char *hddDevicePath = "\\Device\\Harddisk0\\Partition1\\";
 
     // Initialize the STRING structs
-    RtlInitAnsiString(&DeviceName, szHddDevicePath);
-    RtlInitAnsiString(&LinkName, szDestinationDrive);
+    RtlInitAnsiString(&deviceName, hddDevicePath);
+    RtlInitAnsiString(&linkName, destinationDrive);
 
     // Bind the root of the hard drive to the "hdd:" drive.
-    return ObCreateSymbolicLink(&LinkName, &DeviceName);
+    return ObCreateSymbolicLink(&linkName, &deviceName);
 }
 
-// Read the path to the executable from the config file and write it to szGamePath.
-static HRESULT GetGamePath(char *szGamePath, size_t nMaxLength)
+// Read the path to the executable from the config file and write it to gamePath.
+static HRESULT GetGamePath(char *gamePath, size_t maxLength)
 {
     HRESULT hr = S_OK;
     size_t i = 0;
     FILE *pConfigFile = NULL;
-    size_t nGamePathSize = 0;
+    size_t gamePathSize = 0;
 
     // Open the config file in read-only mode
     if (fopen_s(&pConfigFile, "game:\\config\\shortcutInfo.txt", "r") != 0)
         return E_FAIL;
 
-    // Read the second line of the config file into szGamePath
+    // Read the second line of the config file into gamePath
     for (i = 0; i < 2; i++)
-        if (fgets(szGamePath, (int)nMaxLength, pConfigFile) == NULL)
+        if (fgets(gamePath, (int)maxLength, pConfigFile) == NULL)
             return E_FAIL;
 
-    nGamePathSize = strnlen_s(szGamePath, nMaxLength);
+    gamePathSize = strnlen_s(gamePath, maxLength);
 
     // Remove the new line character at the end of the line
-    szGamePath[nGamePathSize - 1] = '\0';
+    gamePath[gamePathSize - 1] = '\0';
 
     fclose(pConfigFile);
 
@@ -61,41 +61,41 @@ static HRESULT GetGamePath(char *szGamePath, size_t nMaxLength)
 }
 
 // Display an error dialog on the console.
-static HRESULT ShowMessageBoxError(const char *szMessage)
+static HRESULT ShowMessageBoxError(const char *message)
 {
-    DWORD dwResult = 0;
+    uint32_t result = 0;
 
-    wchar_t wszMessage[ERROR_LENGTH] = { 0 };
-    XOVERLAPPED Overlapped = { 0 };
-    MESSAGEBOX_RESULT Result = { 0 };
-    const wchar_t *pwszButtons[] = { L"OK", L"Cancel" };
+    wchar_t buffer[ERROR_LENGTH] = { 0 };
+    XOVERLAPPED overlapped = { 0 };
+    MESSAGEBOX_RESULT messageBoxResult = { 0 };
+    const wchar_t *buttons[] = { L"OK", L"Cancel" };
 
-    // Convert szMessage, which is a narrow string, to a wide string
-    mbstowcs_s(NULL, wszMessage, ERROR_LENGTH, szMessage, _TRUNCATE);
+    // Convert message, which is a narrow string, to a wide string
+    mbstowcs_s(NULL, buffer, ERROR_LENGTH, message, _TRUNCATE);
 
-    dwResult = XShowMessageBoxUI(
+    result = XShowMessageBoxUI(
         0,
         L"Error",
-        wszMessage,
-        ARRAYSIZE(pwszButtons),
-        pwszButtons,
+        buffer,
+        ARRAYSIZE(buttons),
+        buttons,
         0,
         XMB_ERRORICON,
-        &Result,
-        &Overlapped
+        &messageBoxResult,
+        &overlapped
     );
 
-    if (dwResult != ERROR_IO_PENDING)
+    if (result != ERROR_IO_PENDING)
         return E_FAIL;
 
     // Wait until the user closes the message box
-    while (!XHasOverlappedIoCompleted(&Overlapped))
+    while (!XHasOverlappedIoCompleted(&overlapped))
         Sleep(100);
 
     // Get how the user closed the message box (by clicking "OK", "Cancel" or the Xbox button on the controller)
-    dwResult = XGetOverlappedResult(&Overlapped, NULL, TRUE);
+    result = XGetOverlappedResult(&overlapped, NULL, TRUE);
 
-    if (dwResult == ERROR_ACCESS_DENIED)
+    if (result == ERROR_ACCESS_DENIED)
         return E_FAIL;
 
     return S_OK;
@@ -104,7 +104,7 @@ static HRESULT ShowMessageBoxError(const char *szMessage)
 int main()
 {
     HRESULT hr = S_OK;
-    char szGamePath[MAX_PATH] = { 0 };
+    char gamePath[MAX_PATH] = { 0 };
 
     // Mount the entire hard drive to be able to access any path in it
     hr = MountHdd();
@@ -115,7 +115,7 @@ int main()
     }
 
     // Read the path to the executable
-    hr = GetGamePath(szGamePath, MAX_PATH);
+    hr = GetGamePath(gamePath, MAX_PATH);
     if (FAILED(hr))
     {
         ShowMessageBoxError("The game information file (config\\shortcutInfo.txt) could not be loaded or has a wrong format.");
@@ -123,5 +123,5 @@ int main()
     }
 
     // Launch the executable
-    XLaunchNewImage(szGamePath, 0);
+    XLaunchNewImage(gamePath, 0);
 }
