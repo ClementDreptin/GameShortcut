@@ -9,7 +9,7 @@
 HRESULT BuildXLASTFile(const char *shortcutName);
 
 // Run BLAST in a separate process.
-HRESULT ExecBLAST(const char *xdkDirPath);
+HRESULT ExecBLAST(void);
 
 // Get the path of the directory the Publisher executable lives in and write it to execDir.
 HRESULT GetExecDir(char *execDir, size_t maxLength);

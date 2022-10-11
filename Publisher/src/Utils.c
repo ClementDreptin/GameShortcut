@@ -141,21 +141,14 @@ HRESULT BuildXLASTFile(const char *shortcutName)
     return S_OK;
 }
 
-HRESULT ExecBLAST(const char *xdkDirPath)
+HRESULT ExecBLAST()
 {
     HRESULT hr = S_OK;
 
     char execDirBuffer[MAX_PATH] = { 0 };
     char BLASTParameters[MAX_PATH] = { 0 };
-    char BLASTPath[MAX_PATH] = { 0 };
 
     SHELLEXECUTEINFO shellExecInfo = { 0 };
-
-    if (xdkDirPath == NULL)
-    {
-        fputs("xdkDirPath is NULL\n", stderr);
-        return E_FAIL;
-    }
 
     // Read the executable directory path and write it to execDirBuffer
     hr = GetExecDir(execDirBuffer, MAX_PATH);
@@ -166,16 +159,12 @@ HRESULT ExecBLAST(const char *xdkDirPath)
     strncpy_s(BLASTParameters, MAX_PATH, execDirBuffer, _TRUNCATE);
     strncat_s(BLASTParameters, MAX_PATH, "\\tmp.xlast /build /install:Local /nologo", _TRUNCATE);
 
-    // Create the absolute path to the BLAST executable
-    strncpy_s(BLASTPath, MAX_PATH, xdkDirPath, _TRUNCATE);
-    strncat_s(BLASTPath, MAX_PATH, "\\bin\\win32\\blast.exe", _TRUNCATE);
-
     // Populate the SHELLEXECUTEINFO struct
     shellExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
     shellExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_NOASYNC | SEE_MASK_NO_CONSOLE;
     shellExecInfo.hwnd = NULL;
     shellExecInfo.lpVerb = NULL;
-    shellExecInfo.lpFile = BLASTPath;
+    shellExecInfo.lpFile = "blast.exe";
     shellExecInfo.lpParameters = BLASTParameters;
     shellExecInfo.lpDirectory = execDirBuffer;
     shellExecInfo.nShow = SW_SHOW;
