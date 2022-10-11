@@ -16,6 +16,13 @@ int main()
         return EXIT_FAILURE;
     }
 
+    hr = AddXdkBinDirToPath();
+    if (FAILED(hr))
+    {
+        system("pause");
+        return EXIT_FAILURE;
+    }
+
     hr = CheckXBDMConnection();
     if (FAILED(hr))
     {

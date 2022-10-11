@@ -54,6 +54,7 @@
       <ProgramDatabaseFile>$(IntDir)$(ProjectName)\$(ProjectName).pdb</ProgramDatabaseFile>
       <AdditionalDependencies>xbdm.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(XEDK)\lib\win32\vs2010;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <DelayLoadDLLs>xbdm.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

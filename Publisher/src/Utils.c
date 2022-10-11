@@ -194,6 +194,7 @@ HRESULT ExecBLAST(const char *xdkDirPath)
         uint32_t error = GetLastError();
         char errorMsg[ERROR_LENGTH] = { 0 };
         strerror_s(errorMsg, ERROR_LENGTH, error);
+        strncat_s(errorMsg, ERROR_LENGTH, "\n", _TRUNCATE);
 
         fputs(errorMsg, stderr);
 
@@ -372,6 +373,58 @@ static HRESULT DeleteDirectory(const char *dirPath)
         fprintf_s(stderr, "Could not delete %s\n", dirPath);
         return E_FAIL;
     }
+
+    return S_OK;
+}
+
+HRESULT AddXdkBinDirToPath(void)
+{
+    char *originalPath = NULL;
+    size_t originalPathSize = 0;
+    char *xdkDir = NULL;
+    size_t xdkDirSize = 0;
+    char *newPath = NULL;
+    size_t newPathSize = 0;
+    char newPathFormat[] = "%s\\bin\\win32;%s";
+    size_t newPathFormatSize = 0;
+    errno_t err = 0;
+
+    // Get the value of %PATH%
+    err = _dupenv_s(&originalPath, &originalPathSize, "PATH");
+    if (err)
+    {
+        fputs("Could not get the value of %PATH%.\n", stderr);
+        return E_FAIL;
+    }
+
+    // Get the value of %XEDK%
+    err = _dupenv_s(&xdkDir, &xdkDirSize, "XEDK");
+    if (err)
+    {
+        fputs("Could not get the value of %XEDK%. Make sure the Xbox 360 Software Development Kit is properly installed.\n", stderr);
+        return E_FAIL;
+    }
+
+    // Calculate the size of the new value of %PATH%
+    newPathFormatSize = sizeof(newPathFormat);
+    newPathSize = originalPathSize + xdkDirSize + newPathFormatSize;
+    newPath = malloc(newPathSize);
+
+    // Create the new value of %PATH% from the format
+    _snprintf_s(newPath, newPathSize, _TRUNCATE, newPathFormat, xdkDir, originalPath);
+
+    // Overwrite the value of %PATH%
+    err = _putenv_s("PATH", newPath);
+    if (err)
+    {
+        fputs("Could not change the value of %PATH%.\n", stderr);
+        return E_FAIL;
+    }
+
+    // Cleanup
+    free(newPath);
+    free(originalPath);
+    free(xdkDir);
 
     return S_OK;
 }
