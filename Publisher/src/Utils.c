@@ -18,7 +18,7 @@
 // Each bytes is represented as 2 characters in hex and we need an extra character to null-terminate the string
 #define HASH_LENGTH ((sizeof(uint32_t) * 2) + 1)
 
-HRESULT BuildXLASTFile(const char *shortcutName)
+HRESULT BuildXLastFile(const char *shortcutName)
 {
     HRESULT hr = S_OK;
 
@@ -141,12 +141,12 @@ HRESULT BuildXLASTFile(const char *shortcutName)
     return S_OK;
 }
 
-HRESULT ExecBLAST()
+HRESULT ExecBlast()
 {
     HRESULT hr = S_OK;
 
     char execDirBuffer[MAX_PATH] = { 0 };
-    char BLASTParameters[MAX_PATH] = { 0 };
+    char blastParameters[MAX_PATH] = { 0 };
 
     SHELLEXECUTEINFO shellExecInfo = { 0 };
 
@@ -156,8 +156,8 @@ HRESULT ExecBLAST()
         return E_FAIL;
 
     // Create the full list of parameters to pass to BLAST
-    strncpy_s(BLASTParameters, MAX_PATH, execDirBuffer, _TRUNCATE);
-    strncat_s(BLASTParameters, MAX_PATH, "\\tmp.xlast /build /install:Local /nologo", _TRUNCATE);
+    strncpy_s(blastParameters, MAX_PATH, execDirBuffer, _TRUNCATE);
+    strncat_s(blastParameters, MAX_PATH, "\\tmp.xlast /build /install:Local /nologo", _TRUNCATE);
 
     // Populate the SHELLEXECUTEINFO struct
     shellExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
@@ -165,7 +165,7 @@ HRESULT ExecBLAST()
     shellExecInfo.hwnd = NULL;
     shellExecInfo.lpVerb = NULL;
     shellExecInfo.lpFile = "blast.exe";
-    shellExecInfo.lpParameters = BLASTParameters;
+    shellExecInfo.lpParameters = blastParameters;
     shellExecInfo.lpDirectory = execDirBuffer;
     shellExecInfo.nShow = SW_SHOW;
     shellExecInfo.hInstApp = NULL;
@@ -271,7 +271,7 @@ HRESULT GetShortcutName(char *shortcutName, size_t maxLength)
     return hr;
 }
 
-HRESULT CheckXBDMConnection(void)
+HRESULT CheckXbdmConnection(void)
 {
     HRESULT hr = S_OK;
     size_t xboxNameSize = MAX_PATH;
@@ -422,7 +422,7 @@ void Cleanup(void)
 {
     HRESULT hr = S_OK;
     char pathToOnlineDir[MAX_PATH] = { 0 };
-    char pathToXLASTFile[MAX_PATH] = { 0 };
+    char pathToXLastFile[MAX_PATH] = { 0 };
 
     // Read the executable directory path and write it to pathToOnlineDir
     hr = GetExecDir(pathToOnlineDir, MAX_PATH);
@@ -430,13 +430,13 @@ void Cleanup(void)
         return;
 
     // Copy the executable directory path (which lives in pathToOnlineDir) into pathToXLASTFile
-    strncpy_s(pathToXLASTFile, MAX_PATH, pathToOnlineDir, _TRUNCATE);
+    strncpy_s(pathToXLastFile, MAX_PATH, pathToOnlineDir, _TRUNCATE);
 
     // Finish the paths to the XLAST file and Online directory
-    strncat_s(pathToXLASTFile, MAX_PATH, "\\tmp.xlast", _TRUNCATE);
+    strncat_s(pathToXLastFile, MAX_PATH, "\\tmp.xlast", _TRUNCATE);
     strncat_s(pathToOnlineDir, MAX_PATH, "\\Online", _TRUNCATE);
 
     // Delete the Online directory and the XLAST file
     DeleteDirectory(pathToOnlineDir);
-    DeleteFile(pathToXLASTFile);
+    DeleteFile(pathToXLastFile);
 }

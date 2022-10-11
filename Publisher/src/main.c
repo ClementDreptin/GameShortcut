@@ -12,7 +12,7 @@ int main()
         return EXIT_FAILURE;
     }
 
-    hr = CheckXBDMConnection();
+    hr = CheckXbdmConnection();
     if (FAILED(hr))
     {
         system("pause");
@@ -26,14 +26,14 @@ int main()
         return EXIT_FAILURE;
     }
 
-    hr = BuildXLASTFile(shortcutName);
+    hr = BuildXLastFile(shortcutName);
     if (FAILED(hr))
     {
         system("pause");
         return EXIT_FAILURE;
     }
 
-    hr = ExecBLAST();
+    hr = ExecBlast();
     if (FAILED(hr))
     {
         Cleanup();
