@@ -6,8 +6,8 @@ GameShortcut is a utility to build shortcuts to games in the Games section of th
 
 ## Prerequisites
 
--   Having the Xbox 360 Software Development Kit installed
--   Xbox 360 Neighborhood set up with your RGH/Jtag/Devkit registered as the default console
+-   Having the Xbox 360 Software Development Kit installed.
+-   Xbox 360 Neighborhood set up with your RGH/Jtag/Devkit registered as the default console.
 
 ## How to use
 
@@ -17,8 +17,8 @@ GameShortcut is a utility to build shortcuts to games in the Games section of th
     <shortcut_name>
     <path_to_xex>
     ```
--   Run `Publisher.exe`
--   Reboot your console and go the Games section of your dashboard to see your shortcut
+-   Run `Publisher.exe`.
+-   Reboot your console and go the Games section of your dashboard to see your shortcut.
 
 ## How it works
 
