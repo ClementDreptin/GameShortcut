@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdint.h>
 #include <Windows.h>
 
 #define SHORCUT_NAME_LENGTH 50

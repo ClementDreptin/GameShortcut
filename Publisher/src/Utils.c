@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <Windows.h>
@@ -27,6 +28,7 @@ HRESULT BuildXLastFile(const char *shortcutName)
 
     uint32_t shortcutNameHash = 0;
     wchar_t shortcutNameHashAsWideString[HASH_LENGTH] = { 0 };
+
 
     size_t i = 0;
 
