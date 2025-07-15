@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.3.32901.215
+VisualStudioVersion = 17.14.36301.6 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameShortcut", "GameShortcut\GameShortcut.vcxproj", "{6B4B454B-99B3-40A8-9F24-4F86DDAC43C5}"
 EndProject
@@ -9,17 +9,17 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Publisher", "Publisher\Publ
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
 		Release|Xbox 360 = Release|Xbox 360
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{6B4B454B-99B3-40A8-9F24-4F86DDAC43C5}.Release|Win32.ActiveCfg = Release|Xbox 360
+		{6B4B454B-99B3-40A8-9F24-4F86DDAC43C5}.Release|x64.ActiveCfg = Release|Xbox 360
 		{6B4B454B-99B3-40A8-9F24-4F86DDAC43C5}.Release|Xbox 360.ActiveCfg = Release|Xbox 360
 		{6B4B454B-99B3-40A8-9F24-4F86DDAC43C5}.Release|Xbox 360.Build.0 = Release|Xbox 360
 		{6B4B454B-99B3-40A8-9F24-4F86DDAC43C5}.Release|Xbox 360.Deploy.0 = Release|Xbox 360
-		{B8E53CFE-1F72-4645-963D-351069AD6B71}.Release|Win32.ActiveCfg = Release|Win32
-		{B8E53CFE-1F72-4645-963D-351069AD6B71}.Release|Win32.Build.0 = Release|Win32
-		{B8E53CFE-1F72-4645-963D-351069AD6B71}.Release|Xbox 360.ActiveCfg = Release|Win32
+		{B8E53CFE-1F72-4645-963D-351069AD6B71}.Release|x64.ActiveCfg = Release|x64
+		{B8E53CFE-1F72-4645-963D-351069AD6B71}.Release|x64.Build.0 = Release|x64
+		{B8E53CFE-1F72-4645-963D-351069AD6B71}.Release|Xbox 360.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

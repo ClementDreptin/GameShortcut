@@ -19,24 +19,80 @@
 // Each bytes is represented as 2 characters in hex and we need an extra character to null-terminate the string
 #define HASH_LENGTH ((sizeof(uint32_t) * 2) + 1)
 
+// Get the path of the directory the Publisher executable lives in and write it to execDir.
+static HRESULT GetExecDir(char *execDir, size_t maxLength)
+{
+    if (execDir == NULL)
+    {
+        fputs("execDir is NULL\n", stderr);
+        return E_FAIL;
+    }
+
+    // Get the absolute path to the Publisher executable
+    char path[MAX_PATH] = { 0 };
+    GetModuleFileName(NULL, path, MAX_PATH);
+
+    // Get a pointer to the last backslash in the path
+    char *lastBackslash = strrchr(path, '\\');
+
+    // It should not happen but just in case no blackslashes were found, return
+    if (lastBackslash == NULL)
+        return E_FAIL;
+
+    // Copy path into execDir but only up until the last backslash
+    size_t execDirPathLength = strnlen_s(path, MAX_PATH) - strnlen_s(lastBackslash, MAX_PATH);
+    strncpy_s(execDir, maxLength, path, execDirPathLength);
+
+    return S_OK;
+}
+
 HRESULT BuildXLastFile(const char *shortcutName)
 {
     HRESULT hr = S_OK;
 
-    char filePath[MAX_PATH] = { 0 };
-    wchar_t wideShortcutName[SHORCUT_NAME_LENGTH] = { 0 };
+    if (shortcutName == NULL)
+    {
+        fputs("shortcutName is NULL\n", stderr);
+        return E_FAIL;
+    }
 
+    // Allocate enough memory on the heap to hold the XLAST file content
+    wchar_t *fileContent = (wchar_t *)malloc(FILE_CONTENT_MAX_LENGTH * sizeof(wchar_t));
+    if (fileContent == NULL)
+    {
+        fputs("Allocating memory for XLAST file content failed\n", stderr);
+        return E_FAIL;
+    }
+
+    // Create a hash from the shortcut name and use it has title ID for the shortcut
     uint32_t shortcutNameHash = 0;
+    hr = HashData(
+        (uint8_t *)shortcutName,
+        (uint32_t)strnlen_s(shortcutName, SHORCUT_NAME_LENGTH),
+        (uint8_t *)&shortcutNameHash,
+        sizeof(uint32_t)
+    );
+
+    if (FAILED(hr))
+    {
+        fputs("Could not hash to shortcut name\n", stderr);
+        return E_FAIL;
+    }
+
+    // Convert shortcutName, which is a narrow string, to a wide string
+    wchar_t wideShortcutName[SHORCUT_NAME_LENGTH] = { 0 };
+    mbstowcs_s(NULL, wideShortcutName, SHORCUT_NAME_LENGTH, shortcutName, _TRUNCATE);
+
+    // Write the string representation of the shortcut name hash in shortcutNameHashAsWideString
     wchar_t shortcutNameHashAsWideString[HASH_LENGTH] = { 0 };
+    _snwprintf_s(shortcutNameHashAsWideString, HASH_LENGTH, _TRUNCATE, L"%08x", shortcutNameHash);
 
+    // Convert the string representation of the shortcut name hash number to uppercase
+    for (size_t i = 0; i < HASH_LENGTH; i++)
+        shortcutNameHashAsWideString[i] = towupper(shortcutNameHashAsWideString[i]);
 
-    size_t i = 0;
-
-    size_t numberOfWideCharToWrite = 0;
-    size_t numberOfWideCharWritten = 0;
-    FILE *pFile = NULL;
-    wchar_t *fileContent = NULL;
-    const wchar_t *fileContentFormat =
+    // Create the actual XLAST file content from the shortcut name and the shortcut name hash and write it to fileContent
+    const wchar_t fileContentFormat[] =
         L"<?xml version=\"1.0\" encoding=\"UTF-16\" standalone=\"no\"?>\n"
         L"<XboxLiveSubmissionProject Version=\"2.0.21256.0\">\n"
         L"    <ContentProject clsid=\"{AED6156D-A870-4FF7-924F-F375495A222A}\" Name=\"%s\" TitleID=\"%s\" TitleName=\"%s\" ActivationDate=\"10/26/2021\" PubOfferingID=\"FFFFFFF\" PubBitFlags=\"FFFFFFFF\" HasCost=\"false\" IsMarketplace=\"true\" AllowProfileTransfer=\"true\" AllowDeviceTransfer=\"true\" DashIconPath=\".\\resources\\icon.png\" TitleIconPath=\".\\resources\\icon.png\" ContentType=\"0x00080000\">\n"
@@ -53,45 +109,6 @@ HRESULT BuildXLastFile(const char *shortcutName)
         L"    </ContentProject>\n"
         L"</XboxLiveSubmissionProject>";
 
-    if (shortcutName == NULL)
-    {
-        fputs("shortcutName is NULL\n", stderr);
-        return E_FAIL;
-    }
-
-    // Allocate enough memory on the heap to hold the XLAST file content
-    fileContent = (wchar_t *)malloc(FILE_CONTENT_MAX_LENGTH * sizeof(wchar_t));
-    if (fileContent == NULL)
-    {
-        fputs("Allocating memory for XLAST file content failed\n", stderr);
-        return E_FAIL;
-    }
-
-    // Create a hash from the shortcut name and use it has title ID for the shortcut
-    hr = HashData(
-        (uint8_t *)shortcutName,
-        (uint32_t)strnlen_s(shortcutName, SHORCUT_NAME_LENGTH),
-        (uint8_t *)&shortcutNameHash,
-        sizeof(uint32_t)
-    );
-
-    if (FAILED(hr))
-    {
-        fputs("Could not hash to shortcut name\n", stderr);
-        return E_FAIL;
-    }
-
-    // Convert shortcutName, which is a narrow string, to a wide string
-    mbstowcs_s(NULL, wideShortcutName, SHORCUT_NAME_LENGTH, shortcutName, _TRUNCATE);
-
-    // Write the string representation of the shortcut name hash in shortcutNameHashAsWideString
-    _snwprintf_s(shortcutNameHashAsWideString, HASH_LENGTH, _TRUNCATE, L"%08x", shortcutNameHash);
-
-    // Convert the string representation of the shortcut name hash number to uppercase
-    for (i = 0; i < HASH_LENGTH; i++)
-        shortcutNameHashAsWideString[i] = towupper(shortcutNameHashAsWideString[i]);
-
-    // Create the actual XLAST file content from the shortcut name and the shortcut name hash and write it to fileContent
     _snwprintf_s(
         fileContent,
         FILE_CONTENT_MAX_LENGTH,
@@ -105,6 +122,7 @@ HRESULT BuildXLastFile(const char *shortcutName)
     );
 
     // Read the executable directory path and write it to filePath
+    char filePath[MAX_PATH] = { 0 };
     hr = GetExecDir(filePath, MAX_PATH);
     if (FAILED(hr))
         return E_FAIL;
@@ -113,6 +131,7 @@ HRESULT BuildXLastFile(const char *shortcutName)
     strncat_s(filePath, MAX_PATH, "\\tmp.xlast", _TRUNCATE);
 
     // Open the XLAST file in write mode and create it if it doesn't exist (which should always be the case)
+    FILE *pFile = NULL;
     fopen_s(&pFile, filePath, "w+, ccs=UTF-16LE");
     if (pFile == NULL)
     {
@@ -121,10 +140,10 @@ HRESULT BuildXLastFile(const char *shortcutName)
     }
 
     // Get the amount of characters that are supposed to be written
-    numberOfWideCharToWrite = wcsnlen_s(fileContent, FILE_CONTENT_MAX_LENGTH);
+    size_t numberOfWideCharToWrite = wcsnlen_s(fileContent, FILE_CONTENT_MAX_LENGTH);
 
     // Write the XLAST file content to the actual file on disk and get the amount of characters written
-    numberOfWideCharWritten = fwrite(fileContent, sizeof(wchar_t), numberOfWideCharToWrite, pFile);
+    size_t numberOfWideCharWritten = fwrite(fileContent, sizeof(wchar_t), numberOfWideCharToWrite, pFile);
 
     // Make sure all characters from the XLAST file content were written to disk
     if (numberOfWideCharWritten != numberOfWideCharToWrite)
@@ -143,30 +162,66 @@ HRESULT BuildXLastFile(const char *shortcutName)
     return S_OK;
 }
 
+// Get the value of %XEDK%.
+static HRESULT GetXdkDir(char **pXdkDir, size_t *pXdkDirSize)
+{
+    if (pXdkDir == NULL)
+    {
+        fputs("pXdkDir is NULL\n", stderr);
+        return E_FAIL;
+    }
+
+    if (pXdkDirSize == NULL)
+    {
+        fputs("pXdkDirSize is NULL\n", stderr);
+        return E_FAIL;
+    }
+
+    errno_t err = _dupenv_s(pXdkDir, pXdkDirSize, "XEDK");
+    if (err != 0)
+    {
+        fputs("Could not get the value of %XEDK%. Make sure the Xbox 360 Software Development Kit is properly installed.\n", stderr);
+        return E_FAIL;
+    }
+
+    return S_OK;
+}
+
 HRESULT ExecBlast()
 {
     HRESULT hr = S_OK;
 
-    char execDirBuffer[MAX_PATH] = { 0 };
-    char blastParameters[MAX_PATH] = { 0 };
-
-    SHELLEXECUTEINFO shellExecInfo = { 0 };
-
     // Read the executable directory path and write it to execDirBuffer
+    char execDirBuffer[MAX_PATH] = { 0 };
     hr = GetExecDir(execDirBuffer, MAX_PATH);
     if (FAILED(hr))
         return E_FAIL;
 
+    // Get the value of %XEDK%
+    char *xdkDir = NULL;
+    size_t xdkDirSize = 0;
+    hr = GetXdkDir(&xdkDir, &xdkDirSize);
+    if (FAILED(hr))
+        return hr;
+
+    // Create the path to the BLAST executable
+    char blastPath[MAX_PATH] = { 0 };
+    strncpy_s(blastPath, MAX_PATH, xdkDir, _TRUNCATE);
+    strncat_s(blastPath, MAX_PATH, "\\bin\\win32\\blast.exe", _TRUNCATE);
+    free(xdkDir);
+
     // Create the full list of parameters to pass to BLAST
+    char blastParameters[MAX_PATH] = { 0 };
     strncpy_s(blastParameters, MAX_PATH, execDirBuffer, _TRUNCATE);
     strncat_s(blastParameters, MAX_PATH, "\\tmp.xlast /build /install:Local /nologo", _TRUNCATE);
 
     // Populate the SHELLEXECUTEINFO struct
+    SHELLEXECUTEINFO shellExecInfo = { 0 };
     shellExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
     shellExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_NOASYNC | SEE_MASK_NO_CONSOLE;
     shellExecInfo.hwnd = NULL;
     shellExecInfo.lpVerb = NULL;
-    shellExecInfo.lpFile = "blast.exe";
+    shellExecInfo.lpFile = blastPath;
     shellExecInfo.lpParameters = blastParameters;
     shellExecInfo.lpDirectory = execDirBuffer;
     shellExecInfo.nShow = SW_SHOW;
@@ -180,7 +235,7 @@ HRESULT ExecBlast()
     CloseHandle(shellExecInfo.hProcess);
 
     // Get the status code returned by the BLAST process and check if it returned an error
-    if ((int)shellExecInfo.hInstApp <= 32)
+    if ((uintptr_t)shellExecInfo.hInstApp <= 32)
     {
         uint32_t error = GetLastError();
         char errorMsg[ERROR_LENGTH] = { 0 };
@@ -195,41 +250,9 @@ HRESULT ExecBlast()
     return S_OK;
 }
 
-HRESULT GetExecDir(char *execDir, size_t maxLength)
-{
-    char path[MAX_PATH] = { 0 };
-    char *lastBackslash = NULL;
-    size_t execDirPathLength = 0;
-
-    if (execDir == NULL)
-    {
-        fputs("execDir is NULL\n", stderr);
-        return E_FAIL;
-    }
-
-    // Get the absolute path to the Publisher executable
-    GetModuleFileName(NULL, path, MAX_PATH);
-
-    // Get a pointer to the last backslash in the path
-    lastBackslash = strrchr(path, '\\');
-
-    // It should not happen but just in case no blackslashes were found, return
-    if (lastBackslash == NULL)
-        return E_FAIL;
-
-    // Copy path into execDir but only up until the last backslash
-    execDirPathLength = strnlen_s(path, MAX_PATH) - strnlen_s(lastBackslash, MAX_PATH);
-    strncpy_s(execDir, maxLength, path, execDirPathLength);
-
-    return S_OK;
-}
-
 HRESULT GetShortcutName(char *shortcutName, size_t maxLength)
 {
     HRESULT hr = S_OK;
-    FILE *pConfigFile = NULL;
-    char configFilePath[MAX_PATH] = { 0 };
-    size_t shortcutNameSize = 0;
 
     if (shortcutName == NULL)
     {
@@ -237,6 +260,7 @@ HRESULT GetShortcutName(char *shortcutName, size_t maxLength)
         return E_FAIL;
     }
 
+    char configFilePath[MAX_PATH] = { 0 };
     hr = GetExecDir(configFilePath, MAX_PATH);
     if (FAILED(hr))
     {
@@ -249,6 +273,7 @@ HRESULT GetShortcutName(char *shortcutName, size_t maxLength)
     strncat_s(configFilePath, MAX_PATH, "\\config\\shortcutInfo.txt", _TRUNCATE);
 
     // Open the config file in read-only mode
+    FILE *pConfigFile = NULL;
     if (fopen_s(&pConfigFile, configFilePath, "r") != 0)
     {
         fprintf_s(stderr, "Failed to open config file at location %s\n", configFilePath);
@@ -263,7 +288,7 @@ HRESULT GetShortcutName(char *shortcutName, size_t maxLength)
         return E_FAIL;
     }
 
-    shortcutNameSize = strnlen_s(shortcutName, maxLength);
+    size_t shortcutNameSize = strnlen_s(shortcutName, maxLength);
 
     // Remove the new line character at the end of the line
     shortcutName[shortcutNameSize - 1] = '\0';
@@ -291,13 +316,6 @@ HRESULT CheckXbdmConnection(void)
 static HRESULT DeleteDirectory(const char *dirPath)
 {
     HRESULT hr = S_OK;
-    BOOL result = FALSE;
-    uint32_t error = 0;
-
-    char pattern[MAX_PATH] = { 0 };
-
-    WIN32_FIND_DATA fileInfo = { 0 };
-    HANDLE fileHandle = INVALID_HANDLE_VALUE;
 
     if (dirPath == NULL)
     {
@@ -306,11 +324,13 @@ static HRESULT DeleteDirectory(const char *dirPath)
     }
 
     // Create the pattern to start searching the files
+    char pattern[MAX_PATH] = { 0 };
     strncpy_s(pattern, MAX_PATH, dirPath, _TRUNCATE);
     strncat_s(pattern, MAX_PATH, "\\*.*", _TRUNCATE);
 
     // Find the first file corresponding to the pattern
-    fileHandle = FindFirstFile(pattern, &fileInfo);
+    WIN32_FIND_DATA fileInfo = { 0 };
+    HANDLE fileHandle = FindFirstFile(pattern, &fileInfo);
     if (fileHandle == INVALID_HANDLE_VALUE)
     {
         fprintf_s(stderr, "Could not find file at location %s\n", dirPath);
@@ -341,7 +361,7 @@ static HRESULT DeleteDirectory(const char *dirPath)
         else
         {
             // Delete the file
-            result = DeleteFile(filePath);
+            BOOL result = DeleteFile(filePath);
             if (!result)
             {
                 fprintf_s(stderr, "Could not delete %s\n", filePath);
@@ -353,12 +373,12 @@ static HRESULT DeleteDirectory(const char *dirPath)
     FindClose(fileHandle);
 
     // Check for errors
-    error = GetLastError();
+    uint32_t error = GetLastError();
     if (error != ERROR_NO_MORE_FILES)
         return E_FAIL;
 
     // Remove the directory once it's empty
-    result = RemoveDirectory(dirPath);
+    BOOL result = RemoveDirectory(dirPath);
     if (!result)
     {
         fprintf_s(stderr, "Could not delete %s\n", dirPath);
@@ -370,43 +390,41 @@ static HRESULT DeleteDirectory(const char *dirPath)
 
 HRESULT AddXdkBinDirToPath(void)
 {
-    char *originalPath = NULL;
-    size_t originalPathSize = 0;
-    char *xdkDir = NULL;
-    size_t xdkDirSize = 0;
-    char *newPath = NULL;
-    size_t newPathSize = 0;
-    char newPathFormat[] = "%s\\bin\\win32;%s";
-    size_t newPathFormatSize = 0;
     errno_t err = 0;
 
     // Get the value of %PATH%
+    char *originalPath = NULL;
+    size_t originalPathSize = 0;
     err = _dupenv_s(&originalPath, &originalPathSize, "PATH");
-    if (err)
+    if (err != 0)
     {
         fputs("Could not get the value of %PATH%.\n", stderr);
         return E_FAIL;
     }
 
     // Get the value of %XEDK%
-    err = _dupenv_s(&xdkDir, &xdkDirSize, "XEDK");
-    if (err)
-    {
-        fputs("Could not get the value of %XEDK%. Make sure the Xbox 360 Software Development Kit is properly installed.\n", stderr);
-        return E_FAIL;
-    }
+    char *xdkDir = NULL;
+    size_t xdkDirSize = 0;
+    HRESULT hr = GetXdkDir(&xdkDir, &xdkDirSize);
+    if (FAILED(hr))
+        return hr;
 
     // Calculate the size of the new value of %PATH%
-    newPathFormatSize = sizeof(newPathFormat);
-    newPathSize = originalPathSize + xdkDirSize + newPathFormatSize;
-    newPath = malloc(newPathSize);
+    char newPathFormat[] = "%s\\bin\\x64;%s";
+    size_t newPathSize = originalPathSize + xdkDirSize + sizeof(newPathFormat);
+    char *newPath = malloc(newPathSize);
+    if (newPath == NULL)
+    {
+        fputs("Could not allocate memory for the new value of %PATH%.\n", stderr);
+        return E_FAIL;
+    }
 
     // Create the new value of %PATH% from the format
     _snprintf_s(newPath, newPathSize, _TRUNCATE, newPathFormat, xdkDir, originalPath);
 
     // Overwrite the value of %PATH%
     err = _putenv_s("PATH", newPath);
-    if (err)
+    if (err != 0)
     {
         fputs("Could not change the value of %PATH%.\n", stderr);
         return E_FAIL;
@@ -423,15 +441,15 @@ HRESULT AddXdkBinDirToPath(void)
 void Cleanup(void)
 {
     HRESULT hr = S_OK;
-    char pathToOnlineDir[MAX_PATH] = { 0 };
-    char pathToXLastFile[MAX_PATH] = { 0 };
 
     // Read the executable directory path and write it to pathToOnlineDir
+    char pathToOnlineDir[MAX_PATH] = { 0 };
     hr = GetExecDir(pathToOnlineDir, MAX_PATH);
     if (FAILED(hr))
         return;
 
     // Copy the executable directory path (which lives in pathToOnlineDir) into pathToXLASTFile
+    char pathToXLastFile[MAX_PATH] = { 0 };
     strncpy_s(pathToXLastFile, MAX_PATH, pathToOnlineDir, _TRUNCATE);
 
     // Finish the paths to the XLAST file and Online directory

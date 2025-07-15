@@ -3,7 +3,6 @@
 int main()
 {
     HRESULT hr = S_OK;
-    char shortcutName[SHORCUT_NAME_LENGTH] = { 0 };
 
     hr = AddXdkBinDirToPath();
     if (FAILED(hr))
@@ -13,6 +12,7 @@ int main()
     if (FAILED(hr))
         return EXIT_FAILURE;
 
+    char shortcutName[SHORCUT_NAME_LENGTH] = { 0 };
     hr = GetShortcutName(shortcutName, SHORCUT_NAME_LENGTH);
     if (FAILED(hr))
         return EXIT_FAILURE;

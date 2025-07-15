@@ -22,8 +22,8 @@ static HRESULT MountHdd()
 {
     STRING deviceName = { 0 };
     STRING linkName = { 0 };
-    const char *destinationDrive = "\\??\\hdd:";
-    const char *hddDevicePath = "\\Device\\Harddisk0\\Partition1\\";
+    const char destinationDrive[] = "\\??\\hdd:";
+    const char hddDevicePath[] = "\\Device\\Harddisk0\\Partition1\\";
 
     // Initialize the STRING structs
     RtlInitAnsiString(&deviceName, hddDevicePath);

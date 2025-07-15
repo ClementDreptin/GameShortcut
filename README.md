@@ -30,9 +30,9 @@ The Windows console application creates an XML configuration file from the name 
 
 ## Building
 
-To build from source, open `GameShortcut.sln` in Visual Studio. The two projects have separate target platforms, `GameShortcut` only builds for the `Xbox 360` platform and `Publisher` only builds for the `Win32` platform. The building workflow differs depending on your version of Visual Studio.
+To build from source, open `GameShortcut.sln` in Visual Studio. The two projects have separate target platforms, `GameShortcut` only builds for the `Xbox 360` platform and `Publisher` only builds for the `x64` platform. The building workflow differs depending on your version of Visual Studio.
 
--   Visual Studio 2019 and prior: Select the `Xbox 360` platform and build `GameShortcut` then select the `Win32` platform and build `Publisher`.
+-   Visual Studio 2019 and prior: Select the `Xbox 360` platform and build `GameShortcut` then select the `x64` platform and build `Publisher`.
 -   Visual Studio 2022: You can't build with the 64-bit version of MSBuild so you'll need to run the 32-bit version manually. Open a developer powershell in Visual Studio (`View > Terminal`) and run the following commands:
     -   ```PS1
           # Create an alias to the 32-bit version of MSBuild named msbuild
@@ -40,11 +40,11 @@ To build from source, open `GameShortcut.sln` in Visual Studio. The two projects
         ```
     -   ```PS1
           # Build GameShortcut
-          msbuild /p:Configuration=Release`;Platform="Xbox 360"
+          msbuild /p:Platform="Xbox 360"
         ```
     -   ```PS1
           # Build Publisher
-          msbuild /p:Configuration=Release`;Platform=Win32
+          msbuild /p:Platform=x64
         ```
 
 If you want to run `Publisher` within Visual Studio, you will need to set it as the startup project. Once it's done, you can run `Publisher` by pressing `F5`.
