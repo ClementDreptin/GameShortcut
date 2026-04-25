@@ -6,19 +6,19 @@ GameShortcut is a utility to build shortcuts to games in the Games section of th
 
 ## Prerequisites
 
--   Having the Xbox 360 Software Development Kit installed.
--   Xbox 360 Neighborhood set up with your RGH/Jtag/Devkit registered as the default console.
+- Having the Xbox 360 Software Development Kit installed.
+- Xbox 360 Neighborhood set up with your RGH/Jtag/Devkit registered as the default console.
 
 ## How to use
 
--   Download the latest release in the [releases section](https://github.com/ClementDreptin/GameShortcut/releases).
--   Modify `config\shortcutInfo.txt` and respect the following format
+- Download the latest release in the [releases section](https://github.com/ClementDreptin/GameShortcut/releases).
+- Modify `config\shortcutInfo.txt` and respect the following format
     ```
     <shortcut_name>
     <path_to_xex>
     ```
--   Run `Publisher.exe`.
--   Reboot your console and go the Games section of your dashboard to see your shortcut.
+- Run `Publisher.exe`.
+- Reboot your console and go the Games section of your dashboard to see your shortcut.
 
 ## How it works
 
@@ -32,19 +32,28 @@ The Windows console application creates an XML configuration file from the name 
 
 To build from source, open `GameShortcut.sln` in Visual Studio. The two projects have separate target platforms, `GameShortcut` only builds for the `Xbox 360` platform and `Publisher` only builds for the `x64` platform. The building workflow differs depending on your version of Visual Studio.
 
--   Visual Studio 2019 and prior: Select the `Xbox 360` platform and build `GameShortcut` then select the `x64` platform and build `Publisher`.
--   Visual Studio 2022: You can't build with the 64-bit version of MSBuild so you'll need to run the 32-bit version manually. Open a developer powershell in Visual Studio (`View > Terminal`) and run the following commands:
-    -   ```PS1
-          # Create an alias to the 32-bit version of MSBuild named msbuild
-          Set-Alias msbuild <path_vs2022>\MSBuild\Current\Bin\MSBuild.exe
-        ```
-    -   ```PS1
-          # Build GameShortcut
-          msbuild /p:Platform="Xbox 360"
-        ```
-    -   ```PS1
-          # Build Publisher
-          msbuild /p:Platform=x64
-        ```
+### Visual Studio 2019 and prior
 
-If you want to run `Publisher` within Visual Studio, you will need to set it as the startup project. Once it's done, you can run `Publisher` by pressing `F5`.
+Select the `Xbox 360` platform and build `GameShortcut` then select the `x64` platform and build `Publisher`.
+
+### Any other environment
+
+Xbox 360 projects can't be built with the 64-bit version of MSBuild, you need to run the 32-bit version. You can make yourself an alias for convenience:
+
+```PS1
+# Create an alias to the 32-bit version of MSBuild named msbuild
+# The default installation path of VS2026 is C:\Program Files\Microsoft Visual Studio\18\Community
+Set-Alias msbuild "<path_vs2026>\MSBuild\Current\Bin\MSBuild.exe"
+```
+
+You can then build `GameShortcut` with this command:
+
+```PS1
+msbuild /p:Platform="Xbox 360"
+```
+
+And build `Publisher` with this command:
+
+```PS1
+msbuild /p:Platform=x64
+```
